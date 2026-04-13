@@ -3,434 +3,356 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>InfraIT.sec — Sikkerhetsvurdering</title>
+<title>InfraIT.sec — Hint-system</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+:root {
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --border: #e0ddd6;
+  --border-strong: #c8c5bc;
+  --text: #1a1a18;
+  --muted: #6b6a65;
+  --hint: #9b9a94;
+  --accent: #1a56a0;
+  --accent-bg: #e8f0fb;
+  --warn: #7a4200;
+  --warn-bg: #fdf3e3;
+  --warn-border: #d4940a;
+  --code-bg: #f0efe8;
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
   :root {
-    --bg: #f9f8f6;
-    --surface: #ffffff;
-    --border: rgba(0,0,0,0.1);
-    --border-strong: rgba(0,0,0,0.2);
-    --text: #1a1a18;
-    --text-muted: #6b6b67;
-    --text-hint: #9b9b96;
-    --accent: #1a56a0;
-    --accent-bg: #e8f0fb;
-    --warn: #92510a;
-    --warn-bg: #fdf0dc;
-    --warn-border: #e8a840;
-    --success: #1a6b3a;
-    --success-bg: #e8f5ee;
-    --danger: #8b1a1a;
-    --danger-bg: #fde8e8;
-    --code-bg: #f0efe8;
-    --radius: 10px;
-    --radius-sm: 6px;
+    --bg: #141412;
+    --surface: #1e1e1c;
+    --border: #2e2e2a;
+    --border-strong: #444440;
+    --text: #e8e6e0;
+    --muted: #9b9a94;
+    --hint: #6b6a65;
+    --accent: #6ba3e8;
+    --accent-bg: #1a2a40;
+    --warn: #e8a840;
+    --warn-bg: #2a1e08;
+    --warn-border: #7a4200;
+    --code-bg: #2a2926;
   }
+}
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #141412;
-      --surface: #1e1e1c;
-      --border: rgba(255,255,255,0.1);
-      --border-strong: rgba(255,255,255,0.2);
-      --text: #e8e7e2;
-      --text-muted: #9b9b96;
-      --text-hint: #6b6b67;
-      --accent: #6ba3e8;
-      --accent-bg: #1a2a40;
-      --warn: #e8a840;
-      --warn-bg: #2a1e0a;
-      --warn-border: #92510a;
-      --success: #4ab870;
-      --success-bg: #0a2018;
-      --danger: #e86060;
-      --danger-bg: #2a0a0a;
-      --code-bg: #2a2a26;
-    }
-  }
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
 
-  body {
-    font-family: 'Georgia', serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    line-height: 1.6;
-  }
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  header {
-    border-bottom: 1px solid var(--border);
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--surface);
-  }
+.logo { font-size: 15px; font-weight: 600; }
+.logo-sub { font-weight: 400; color: var(--muted); }
+#hdr-user { font-size: 13px; color: var(--muted); }
 
-  .logo { font-size: 15px; font-weight: bold; letter-spacing: -0.01em; }
-  .logo span { color: var(--text-muted); font-weight: normal; }
+main {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
 
-  main { max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem; }
+.view { display: none; }
+.view.active { display: block; }
 
-  .view { display: none; }
-  .view.active { display: block; }
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  max-width: 400px;
+}
 
-  .login-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.75rem;
-    max-width: 400px;
-  }
+.login-box h2 { font-size: 18px; margin-bottom: 4px; }
+.login-box .sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
 
-  .login-card h2 { font-size: 18px; margin-bottom: 4px; }
-  .login-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 1.5rem; font-family: system-ui, sans-serif; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
 
-  label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 5px; font-family: system-ui, sans-serif; }
+.field input {
+  display: block;
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  position: relative;
+  z-index: 1;
+}
 
-  input[type=text], input[type=password] {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    font-family: system-ui, sans-serif;
-    margin-bottom: 12px;
-    outline: none;
-  }
+.field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(26, 86, 160, 0.15);
+}
 
-  input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+.row { display: flex; gap: 8px; margin-top: 4px; }
 
-  .btn-row { display: flex; gap: 8px; }
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
 
-  button {
-    padding: 8px 16px;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-sm);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 13px;
-    font-family: system-ui, sans-serif;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
+button:hover { background: var(--bg); }
+button.primary { background: var(--accent); color: #fff; border-color: var(--accent); flex: 1; }
+button.primary:hover { opacity: 0.88; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  button:hover { background: var(--bg); }
-  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); flex: 1; }
-  button.primary:hover { opacity: 0.9; }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
+.err { font-size: 12px; color: #a02020; margin-top: 8px; }
 
-  .err { font-size: 12px; color: var(--danger); margin-top: 6px; font-family: system-ui, sans-serif; }
+.ph { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.ph h2 { font-size: 19px; }
+.ph .sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
 
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1.75rem;
-  }
+.prog-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 24px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s; }
 
-  .page-header h2 { font-size: 20px; }
-  .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 2px; font-family: system-ui, sans-serif; }
+.cat-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--hint);
+  margin: 24px 0 8px;
+}
 
-  .progress-bar {
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin-bottom: 1.5rem;
-    overflow: hidden;
-  }
+.hcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
 
-  .progress-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.4s ease;
-  }
+.hcard-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+}
 
-  .cat-label {
-    font-size: 11px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-hint);
-    margin: 1.5rem 0 8px;
-    font-family: system-ui, sans-serif;
-  }
+.hcard-hdr:hover { background: var(--bg); }
+.hnum { font-size: 12px; color: var(--hint); min-width: 16px; }
+.htitle { flex: 1; font-size: 14px; }
+.htitle.used { color: var(--muted); }
 
-  .hint-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 8px;
-    overflow: hidden;
-  }
+.badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.badge-new { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
+.badge-done { background: var(--bg); color: var(--hint); border: 1px solid var(--border); }
 
-  .hint-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    cursor: default;
-  }
+.hcard-body { padding: 0 16px 14px; display: none; }
 
-  .hint-num {
-    font-size: 12px;
-    color: var(--text-hint);
-    min-width: 16px;
-    font-family: system-ui, sans-serif;
-  }
+.explain {
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  line-height: 1.65;
+  margin-bottom: 10px;
+}
 
-  .hint-name {
-    flex: 1;
-    font-size: 14px;
-    font-family: system-ui, sans-serif;
-  }
+.sep { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
 
-  .hint-name.used { color: var(--text-muted); }
+.confirm {
+  font-size: 13px;
+  color: var(--warn);
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
 
-  .badge {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-family: system-ui, sans-serif;
-    white-space: nowrap;
-  }
+.confirm p { margin-bottom: 8px; color: var(--muted); }
+.btn-warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
+.btn-warn:hover { background: var(--warn-border); color: #fff; }
 
-  .badge-new { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
-  .badge-used { background: var(--bg); color: var(--text-hint); border: 1px solid var(--border); }
+.script-box { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
 
-  .hint-body { padding: 0 14px 14px; }
+.script-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--code-bg);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--hint);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
 
-  .hint-explain {
-    font-size: 13px;
-    color: var(--text-muted);
-    line-height: 1.65;
-    background: var(--bg);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    font-family: system-ui, sans-serif;
-  }
+.copy-btn {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
 
-  .confirm-box {
-    font-size: 13px;
-    color: var(--text-muted);
-    background: var(--warn-bg);
-    border: 1px solid var(--warn-border);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    font-family: system-ui, sans-serif;
-  }
+.copy-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-  .confirm-box p { margin-bottom: 8px; }
-  .confirm-box .btn-row { gap: 6px; }
-  .btn-warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); }
-  .btn-warn:hover { background: var(--warn-border); color: #fff; }
+pre {
+  background: var(--code-bg);
+  padding: 12px;
+  font-size: 12px;
+  font-family: 'Courier New', 'Consolas', monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text);
+  line-height: 1.6;
+}
 
-  .script-box {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-  }
+.stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.stat-lbl { font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+.stat-val { font-size: 24px; font-weight: 700; }
 
-  .script-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-hint);
-    background: var(--code-bg);
-    padding: 6px 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: system-ui, sans-serif;
-  }
+.tabs { display: flex; gap: 4px; margin-bottom: 14px; }
+.tab { font-size: 13px; padding: 6px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer; background: transparent; color: var(--muted); }
+.tab.on { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
 
-  .copy-btn {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text-muted);
-    cursor: pointer;
-  }
+.tbl { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.trow { display: grid; grid-template-columns: 90px 60px repeat(8, 1fr); align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); font-size: 13px; gap: 4px; }
+.trow:last-child { border-bottom: none; }
+.trow.th { background: var(--bg); font-weight: 600; font-size: 11px; color: var(--muted); }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin: auto; }
+.dot-on { background: var(--warn); }
+.dot-off { background: var(--border); border: 1px solid var(--border-strong); }
 
-  .copy-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.lrow { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.lrow:last-child { border-bottom: none; }
+.ltime { font-size: 12px; color: var(--hint); white-space: nowrap; margin-left: 12px; }
 
-  pre {
-    background: var(--code-bg);
-    padding: 12px;
-    font-size: 12px;
-    font-family: 'Courier New', monospace;
-    white-space: pre-wrap;
-    word-break: break-all;
-    color: var(--text);
-    line-height: 1.6;
-    overflow-x: auto;
-  }
-
-  .stat-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 1.5rem;
-  }
-
-  .stat {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-  }
-
-  .stat-lbl { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-family: system-ui, sans-serif; }
-  .stat-val { font-size: 24px; font-weight: bold; }
-
-  .tab-bar { display: flex; gap: 4px; margin-bottom: 1rem; }
-  .tab { font-size: 13px; padding: 6px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer; background: transparent; color: var(--text-muted); font-family: system-ui, sans-serif; }
-  .tab.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
-
-  .matrix-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-
-  .matrix-row {
-    display: grid;
-    grid-template-columns: 90px 60px repeat(8, 1fr);
-    align-items: center;
-    padding: 8px 14px;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-    font-family: system-ui, sans-serif;
-    gap: 4px;
-  }
-
-  .matrix-row:last-child { border-bottom: none; }
-  .matrix-row.head { background: var(--bg); font-weight: bold; font-size: 12px; color: var(--text-muted); }
-
-  .dot {
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-    margin: auto;
-  }
-
-  .dot-on { background: var(--warn); }
-  .dot-off { background: var(--border); border: 1px solid var(--border-strong); }
-
-  .log-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 9px 14px;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-    font-family: system-ui, sans-serif;
-  }
-
-  .log-item:last-child { border-bottom: none; }
-  .log-time { color: var(--text-hint); white-space: nowrap; margin-left: 12px; font-size: 12px; }
-
-  .empty { font-size: 13px; color: var(--text-muted); padding: 1rem 0; font-family: system-ui, sans-serif; }
-
-  .storage-notice {
-    font-size: 12px;
-    color: var(--text-hint);
-    text-align: center;
-    margin-top: 2rem;
-    font-family: system-ui, sans-serif;
-  }
+.empty { font-size: 13px; color: var(--muted); padding: 12px 0; }
+.footnote { font-size: 12px; color: var(--hint); text-align: center; margin-top: 24px; }
 </style>
 </head>
 <body>
 
 <header>
-  <span class="logo">InfraIT.sec <span>/ sikkerhetsvurdering</span></span>
-  <span id="header-user" style="font-size:13px;color:var(--text-muted);font-family:system-ui,sans-serif;"></span>
+  <span class="logo">InfraIT.sec <span class="logo-sub">/ sikkerhetsvurdering</span></span>
+  <span id="hdr-user"></span>
 </header>
 
 <main>
 
-  <div id="v-login" class="view active">
-    <div class="login-card">
-      <h2>Hint-system</h2>
-      <p>Logg inn med ditt prefiks for å se hint og verifiseringsscript.</p>
-      <label>Ditt prefiks (f.eks. on03)</label>
-      <input type="text" id="inp-prefix" placeholder="on03" autocomplete="off">
-      <div class="btn-row">
-        <button class="primary" onclick="loginStudent()">Logg inn som student</button>
-        <button onclick="showV('v-tlg')">Faglærer</button>
-      </div>
-      <div id="err-login" class="err"></div>
+<div id="v-login" class="view active">
+  <div class="login-box">
+    <h2>Hint-system</h2>
+    <p class="sub">Logg inn med ditt prefiks for å se hint og verifiseringsscript.</p>
+    <div class="field">
+      <label for="inp-prefix">Ditt prefiks (f.eks. on03)</label>
+      <input type="text" id="inp-prefix" placeholder="on03" autocomplete="off" spellcheck="false">
     </div>
+    <div class="row">
+      <button class="primary" onclick="loginStudent()">Logg inn som student</button>
+      <button onclick="showV('v-tlg')">Faglærer</button>
+    </div>
+    <div id="err-login" class="err"></div>
   </div>
+</div>
 
-  <div id="v-tlg" class="view">
-    <div class="login-card">
-      <h2>Faglærer-tilgang</h2>
-      <p>Kun for faglærer — gir tilgang til hint-oversikt og aktivitetslogg.</p>
-      <label>Passord</label>
+<div id="v-tlg" class="view">
+  <div class="login-box">
+    <h2>Faglærer-tilgang</h2>
+    <p class="sub">Viser hint-bruk registrert i denne nettleseren.</p>
+    <div class="field">
+      <label for="inp-pw">Passord</label>
       <input type="password" id="inp-pw" placeholder="••••••••">
-      <div class="btn-row">
-        <button class="primary" id="btn-tlg" onclick="loginTeacher()">Logg inn</button>
-        <button onclick="showV('v-login')">Tilbake</button>
-      </div>
-      <div id="err-teacher" class="err"></div>
     </div>
+    <div class="row">
+      <button class="primary" id="btn-tlg" onclick="loginTeacher()">Logg inn</button>
+      <button onclick="showV('v-login')">Tilbake</button>
+    </div>
+    <div id="err-teacher" class="err"></div>
   </div>
+</div>
 
-  <div id="v-student" class="view">
-    <div class="page-header">
-      <div>
-        <h2>Hint-oversikt</h2>
-        <p id="s-sub"></p>
-      </div>
+<div id="v-student" class="view">
+  <div class="ph">
+    <div>
+      <h2>Hint-oversikt</h2>
+      <p class="sub" id="s-sub"></p>
+    </div>
+    <button onclick="logout()">Logg ut</button>
+  </div>
+  <div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0"></div></div>
+  <div id="hlist"></div>
+  <p class="footnote">Hint-bruk lagres lokalt i denne nettleseren.</p>
+</div>
+
+<div id="v-teacher" class="view">
+  <div class="ph">
+    <h2>Faglærer-oversikt</h2>
+    <div class="row">
+      <button onclick="renderTeacher()">Oppdater</button>
       <button onclick="logout()">Logg ut</button>
     </div>
-    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-    <div id="hint-list"></div>
-    <p class="storage-notice">Hint-bruk lagres lokalt i denne nettleseren.</p>
   </div>
-
-  <div id="v-teacher" class="view">
-    <div class="page-header">
-      <div><h2>Faglærer-oversikt</h2></div>
-      <div class="btn-row">
-        <button onclick="refreshTeacher()">Oppdater</button>
-        <button onclick="logout()">Logg ut</button>
-      </div>
-    </div>
-    <div class="stat-row" id="t-stats"></div>
-    <div class="tab-bar">
-      <button class="tab active" onclick="switchTab('t-matrix',this)">Hint-matrise</button>
-      <button class="tab" onclick="switchTab('t-log',this)">Aktivitetslogg</button>
-    </div>
-    <div id="t-matrix"><p class="empty">Laster...</p></div>
-    <div id="t-log" style="display:none;"><p class="empty">Laster...</p></div>
-    <p class="storage-notice">Data lagres per nettleser — studenter må bruke samme enhet for at data skal vises her.</p>
+  <div class="stats" id="t-stats"></div>
+  <div class="tabs">
+    <button class="tab on" onclick="switchTab('t-mx',this)">Hint-matrise</button>
+    <button class="tab" onclick="switchTab('t-lg',this)">Aktivitetslogg</button>
   </div>
+  <div id="t-mx"></div>
+  <div id="t-lg" style="display:none"></div>
+  <p class="footnote">Data lagres per nettleser — viser kun aktivitet fra denne maskinen.</p>
+</div>
 
 </main>
 
 <script>
 const TPW = 'infraitsec2024';
-const SK_USE = 'infraitsec_usage';
-const SK_LOG = 'infraitsec_log';
+const SK_U = 'iits_usage';
+const SK_L = 'iits_log';
 
 const HINTS = [
-  {
-    id: 1, cat: 'Nettverkssikkerhet',
-    title: 'NSG-regler på management-subnettet',
-    explain: 'Undersøk inngående NSG-regler på management-subnettet. Er alle porter begrenset til nødvendige kilder, eller er noen regler åpne for et for bredt adresserom — for eksempel 0.0.0.0/0?',
-    script: `# Sjekk NSG-regler på management-subnettet
+  { id:1, cat:'Nettverkssikkerhet', title:'NSG-regler på management-subnettet',
+    explain:'Undersøk inngående NSG-regler på management-subnettet. Er alle porter begrenset til nødvendige kilder, eller er noen regler åpne for et for bredt adresserom — for eksempel 0.0.0.0/0?',
+    script:`# Sjekk NSG-regler på management-subnettet
 PREFIX="<ditt-prefiks>"
 RG="${PREFIX}-rg-infraitsec-network"
 NSG="${PREFIX}-nsg-management"
@@ -439,16 +361,14 @@ echo "--- Inngående regler for $NSG ---"
 az network nsg rule list \\
   --resource-group $RG \\
   --nsg-name $NSG \\
-  --query "[].{Navn:name, Prioritet:priority, Kilde:sourceAddressPrefix, Porter:destinationPortRange, Tilgang:access}" \\
+  --query "[].{Navn:name, Prioritet:priority, Kilde:sourceAddressPrefix, Port:destinationPortRange, Tilgang:access}" \\
   --output table
 
-# Forventet: ingen regler med sourceAddressPrefix = "*" eller "0.0.0.0/0"`
-  },
-  {
-    id: 2, cat: 'Nettverkssikkerhet',
-    title: 'Trafikk mellom spoke-er',
-    explain: 'I en hub-spoke-topologi skal trafikk mellom spoke-er tvinges gjennom hub-en via en User Defined Route (UDR). Uten UDR kan ressurser i spoke-ene kommunisere direkte med hverandre, noe som omgår sentralisert trafikkontroll.',
-    script: `# Sjekk om det finnes UDR på AKS-subnettet
+# Se etter regler med Kilde = * eller 0.0.0.0/0`},
+
+  { id:2, cat:'Nettverkssikkerhet', title:'Trafikk mellom spoke-er',
+    explain:'I en hub-spoke-topologi skal trafikk mellom spoke-er tvinges gjennom hub-en via en User Defined Route (UDR). Uten UDR kan ressurser kommunisere direkte på tvers av spoke-er og omgå sentralisert kontroll.',
+    script:`# Sjekk om det finnes UDR på AKS-subnettet
 PREFIX="<ditt-prefiks>"
 RG="${PREFIX}-rg-infraitsec-network"
 VNET="${PREFIX}-vnet-spoke"
@@ -463,47 +383,39 @@ ROUTE_TABLE=$(az network vnet subnet show \\
 
 if [ -z "$ROUTE_TABLE" ] || [ "$ROUTE_TABLE" = "null" ]; then
   echo "FUNN: Ingen UDR tilknyttet AKS-subnettet"
-  echo "      Trafikk mellom spoke-er er ikke kontrollert"
+  echo "      Trafikk mellom spoke-er er ikke tvunget gjennom hub"
 else
-  echo "OK:   UDR er tilknyttet: $ROUTE_TABLE"
-fi`
-  },
-  {
-    id: 3, cat: 'Nettverkssikkerhet',
-    title: 'Public IP på en VM',
-    explain: 'Sjekk om noen VM-er i spoke-en har en direkte tilknyttet public IP-adresse. En VM med public IP er eksponert mot internett uten å gå via VPN eller Bastion — en direkte sikkerhetssvakhet.',
-    script: `# Finn VM-er med public IP i spoke resource group
+  echo "OK:   UDR er tilknyttet"
+fi`},
+
+  { id:3, cat:'Nettverkssikkerhet', title:'Public IP på en VM',
+    explain:'Sjekk om noen VM-er i spoke-en har en direkte tilknyttet public IP-adresse. En VM med public IP er eksponert mot internett uten å gå via VPN eller Bastion.',
+    script:`# Finn VM-er med public IP
 PREFIX="<ditt-prefiks>"
 RG="${PREFIX}-rg-infraitsec-network"
 
-echo "--- VM-er med public IP i $RG ---"
 az vm list-ip-addresses \\
   --resource-group $RG \\
   --query "[].{VM:virtualMachine.name, PublicIP:virtualMachine.network.publicIpAddresses[0].ipAddress}" \\
   --output table
 
-# Forventet: ingen VM skal ha en Public IP-adresse`
-  },
-  {
-    id: 4, cat: 'Identitet og tilgang',
-    title: 'RBAC-omfang',
-    explain: 'Undersøk om noen brukere eller tjenester har RBAC-tildelinger på subscription-nivå istedenfor resource group-nivå. Principle of least privilege tilsier at tilgang bør begrenses til lavest nødvendige omfang.',
-    script: `# Sjekk RBAC-tildelinger på subscription-nivå
-SUBSCRIPTION=$(az account show --query id --output tsv)
+# Forventet: ingen VM skal ha en Public IP-adresse`},
 
-echo "--- RBAC-tildelinger på subscription-nivå ---"
+  { id:4, cat:'Identitet og tilgang', title:'RBAC-omfang',
+    explain:'Undersøk om noen brukere har RBAC-tildelinger på subscription-nivå istedenfor resource group-nivå. Principle of least privilege tilsier at tilgang bør begrenses til lavest nødvendige omfang.',
+    script:`# Sjekk RBAC på subscription-nivå
+SUB=$(az account show --query id --output tsv)
+
 az role assignment list \\
-  --scope "/subscriptions/$SUBSCRIPTION" \\
-  --query "[?principalType!='ServicePrincipal'].{Bruker:principalName, Rolle:roleDefinitionName, Omfang:scope}" \\
+  --scope "/subscriptions/$SUB" \\
+  --query "[?principalType!='ServicePrincipal'].{Bruker:principalName, Rolle:roleDefinitionName}" \\
   --output table
 
-# Forventet: studenter bør kun ha tilgang på resource group-nivå`
-  },
-  {
-    id: 5, cat: 'Identitet og tilgang',
-    title: 'Storage Account-autentisering',
-    explain: 'Sjekk om applikasjonen bruker kontonøkler for å autentisere mot Storage Account. Nøkkelbasert autentisering gir full tilgang og kan ikke begrenses — Managed Identity er det sikrere alternativet.',
-    script: `# Sjekk om tilgang med kontonøkkel er aktivert
+# Studenter bør kun ha tilgang på resource group-nivå`},
+
+  { id:5, cat:'Identitet og tilgang', title:'Storage Account-autentisering',
+    explain:'Sjekk om applikasjonen bruker kontonøkler for å autentisere mot Storage Account. Nøkkelbasert autentisering gir full tilgang og kan ikke begrenses per operasjon — Managed Identity er sikrere.',
+    script:`# Sjekk om kontonøkkel-tilgang er aktivert
 PREFIX="<ditt-prefiks>"
 RG="${PREFIX}-rg-infraitsec-compute"
 STORAGE="${PREFIX}stginfraisec"
@@ -514,77 +426,66 @@ KEY_ACCESS=$(az storage account show \\
   --query "allowSharedKeyAccess" \\
   --output tsv)
 
-if [ "$KEY_ACCESS" = "true" ] || [ "$KEY_ACCESS" = "None" ]; then
+if [ "$KEY_ACCESS" = "true" ] || [ -z "$KEY_ACCESS" ]; then
   echo "FUNN: Kontonøkkel-autentisering er aktivert på $STORAGE"
-  echo "      Vurder å bruke Managed Identity istedenfor"
 else
   echo "OK:   Kontonøkkel-autentisering er deaktivert"
-fi`
-  },
-  {
-    id: 6, cat: 'Identitet og tilgang',
-    title: 'Tjenestebrukere og tillatelser',
-    explain: 'Undersøk om AKS-clusterets managed identity har bredere tillatelser enn nødvendig. Network Contributor på subscription-nivå er for bredt — tilgangen bør begrenses til det aktuelle subnettet.',
-    script: `# Sjekk AKS managed identity sine tillatelser
+fi`},
+
+  { id:6, cat:'Identitet og tilgang', title:'Tjenestebrukere og tillatelser',
+    explain:'Undersøk om AKS-clusterets managed identity har bredere tillatelser enn nødvendig. Network Contributor på subscription-nivå er for bredt — rollen bør begrenses til det aktuelle subnettet.',
+    script:`# Sjekk AKS managed identity sine roller
 PREFIX="<ditt-prefiks>"
-RG_COMPUTE="${PREFIX}-rg-infraitsec-compute"
+RG="${PREFIX}-rg-infraitsec-compute"
 AKS="${PREFIX}-aks-infraitsec"
 
 IDENTITY=$(az aks show \\
-  --resource-group $RG_COMPUTE \\
+  --resource-group $RG \\
   --name $AKS \\
   --query identity.principalId \\
   --output tsv)
 
-echo "--- Rolle-tildelinger for AKS-identitet ---"
 az role assignment list \\
   --assignee $IDENTITY \\
   --query "[].{Rolle:roleDefinitionName, Omfang:scope}" \\
   --output table
 
-# Forventet: Network Contributor kun på subnet-nivå, ikke subscription`
-  },
-  {
-    id: 7, cat: 'Ressurskonfigurasjon',
-    title: 'Storage Account nettverkstilgang',
-    explain: 'Sjekk om Storage Account er tilgjengelig fra internett. Med public network access aktivert kan hvem som helst forsøke å nå storage-endepunktet — selv om de mangler nøkkelen, er eksponeringen unødvendig.',
-    script: `# Sjekk om Storage Account er offentlig tilgjengelig
+# Network Contributor bør kun stå på subnet-nivå, ikke subscription`},
+
+  { id:7, cat:'Ressurskonfigurasjon', title:'Storage Account nettverkstilgang',
+    explain:'Sjekk om Storage Account er tilgjengelig fra internett. Med public network access aktivert kan hvem som helst forsøke å nå storage-endepunktet — uavhengig av om de har nøkkelen.',
+    script:`# Sjekk om Storage Account er offentlig tilgjengelig
 PREFIX="<ditt-prefiks>"
 RG="${PREFIX}-rg-infraitsec-compute"
 STORAGE="${PREFIX}stginfraisec"
 
-DEFAULT_ACTION=$(az storage account show \\
+DEFAULT=$(az storage account show \\
   --name $STORAGE \\
   --resource-group $RG \\
   --query "networkRuleSet.defaultAction" \\
   --output tsv)
 
-if [ "$DEFAULT_ACTION" = "Allow" ]; then
+if [ "$DEFAULT" = "Allow" ] || [ -z "$DEFAULT" ]; then
   echo "FUNN: Storage Account er offentlig tilgjengelig (defaultAction: Allow)"
-  echo "      Sett til Deny og legg til spesifikke nettverksregler"
 else
-  echo "OK:   Storage Account er begrenset (defaultAction: $DEFAULT_ACTION)"
-fi`
-  },
-  {
-    id: 8, cat: 'Ressurskonfigurasjon',
-    title: 'Kubernetes Service-type',
-    explain: 'Sjekk om Kubernetes-tjenestene i AKS er eksponert med intern eller ekstern load balancer. Uten annotasjonen azure-load-balancer-internal: "true" vil tjenesten få en public IP-adresse.',
-    script: `# Sjekk load balancer-type for Kubernetes-tjenester
+  echo "OK:   Tilgang begrenset (defaultAction: $DEFAULT)"
+fi`},
+
+  { id:8, cat:'Ressurskonfigurasjon', title:'Kubernetes Service-type',
+    explain:'Sjekk om Kubernetes-tjenestene i AKS er eksponert med intern eller ekstern load balancer. Uten annotasjonen azure-load-balancer-internal: "true" vil tjenesten få en offentlig IP-adresse.',
+    script:`# Sjekk load balancer-type for Kubernetes-tjenester
 PREFIX="<ditt-prefiks>"
 RG="${PREFIX}-rg-infraitsec-compute"
 AKS="${PREFIX}-aks-infraitsec"
 
 az aks get-credentials --resource-group $RG --name $AKS 2>/dev/null
 
-echo "--- Kubernetes services med LoadBalancer ---"
 kubectl get services --all-namespaces \\
   -o custom-columns="NAVN:.metadata.name,TYPE:.spec.type,EKSTERN-IP:.status.loadBalancer.ingress[0].ip" \\
-  | grep LoadBalancer
+  | grep -i loadbalancer
 
-# Forventet: EKSTERN-IP skal være en privat adresse (10.1.x.x)
-# En offentlig IP-adresse er en sikkerhetssvakhet`
-  }
+# Forventet: EKSTERN-IP skal være privat (10.1.x.x)
+# En offentlig IP er en sikkerhetssvakhet`}
 ];
 
 const CATS = [...new Set(HINTS.map(h => h.cat))];
@@ -595,59 +496,54 @@ function showV(id) {
   document.getElementById(id).classList.add('active');
 }
 
-function getUsage() {
-  try { return JSON.parse(localStorage.getItem(SK_USE) || '{}'); } catch { return {}; }
+function getU() { try { return JSON.parse(localStorage.getItem(SK_U) || '{}'); } catch { return {}; } }
+function getL() { try { return JSON.parse(localStorage.getItem(SK_L) || '[]'); } catch { return []; } }
+function saveU(d) { localStorage.setItem(SK_U, JSON.stringify(d)); }
+function saveL(d) { localStorage.setItem(SK_L, JSON.stringify(d)); }
+
+function mark(hintId, level) {
+  const u = getU();
+  if (!u[cUser]) u[cUser] = {};
+  if (!u[cUser][hintId]) u[cUser][hintId] = {};
+  u[cUser][hintId][level] = true;
+  saveU(u);
+  const l = getL();
+  l.push({ user: cUser, hintId, level, ts: new Date().toISOString() });
+  saveL(l);
 }
 
-function getLog() {
-  try { return JSON.parse(localStorage.getItem(SK_LOG) || '[]'); } catch { return []; }
-}
-
-function saveUsage(u) { localStorage.setItem(SK_USE, JSON.stringify(u)); }
-function saveLog(l) { localStorage.setItem(SK_LOG, JSON.stringify(l)); }
-
-function markUsed(hintId, level) {
-  const usage = getUsage();
-  if (!usage[cUser]) usage[cUser] = {};
-  if (!usage[cUser][hintId]) usage[cUser][hintId] = {};
-  usage[cUser][hintId][level] = true;
-  saveUsage(usage);
-  const log = getLog();
-  log.push({ user: cUser, hintId, level, ts: new Date().toISOString() });
-  saveLog(log);
-}
-
-function hasUsed(hintId, level) {
-  const usage = getUsage();
-  return !!(usage[cUser] && usage[cUser][hintId] && usage[cUser][hintId][level]);
+function used(hintId, level) {
+  const u = getU();
+  return !!(u[cUser] && u[cUser][hintId] && u[cUser][hintId][level]);
 }
 
 function loginStudent() {
   const p = document.getElementById('inp-prefix').value.trim().toLowerCase();
-  if (!p || p.length < 2) { document.getElementById('err-login').textContent = 'Skriv inn et gyldig prefiks.'; return; }
+  if (!p || p.length < 2) {
+    document.getElementById('err-login').textContent = 'Skriv inn et gyldig prefiks.';
+    return;
+  }
   cUser = p;
-  document.getElementById('header-user').textContent = p;
-  document.getElementById('s-sub').textContent = 'Prefiks: ' + p + ' — hint-bruk registreres i denne nettleseren';
+  document.getElementById('hdr-user').textContent = p;
+  document.getElementById('s-sub').textContent = 'Prefiks: ' + p + ' — hint-bruk lagres i denne nettleseren';
   showV('v-student');
   renderStudent();
 }
 
-async function loginTeacher() {
-  if (document.getElementById('inp-pw').value !== TPW) {
-    document.getElementById('err-teacher').textContent = 'Feil passord.'; return;
+function loginTeacher() {
+  const pw = document.getElementById('inp-pw').value;
+  if (pw !== TPW) {
+    document.getElementById('err-teacher').textContent = 'Feil passord.';
+    return;
   }
-  document.getElementById('btn-tlg').textContent = 'Logger inn...';
-  document.getElementById('btn-tlg').disabled = true;
-  document.getElementById('header-user').textContent = 'faglærer';
+  document.getElementById('hdr-user').textContent = 'faglærer';
   showV('v-teacher');
   renderTeacher();
-  document.getElementById('btn-tlg').textContent = 'Logg inn';
-  document.getElementById('btn-tlg').disabled = false;
 }
 
 function logout() {
   cUser = null;
-  document.getElementById('header-user').textContent = '';
+  document.getElementById('hdr-user').textContent = '';
   document.getElementById('inp-prefix').value = '';
   document.getElementById('inp-pw').value = '';
   document.getElementById('err-login').textContent = '';
@@ -655,178 +551,191 @@ function logout() {
   showV('v-login');
 }
 
-function refreshTeacher() { renderTeacher(); }
-
 function renderStudent() {
-  const el = document.getElementById('hint-list');
+  const el = document.getElementById('hlist');
   el.innerHTML = '';
-  const usage = getUsage();
-  const myUsage = usage[cUser] || {};
-  const usedCount = Object.keys(myUsage).length;
   const total = HINTS.length;
-  const pct = Math.round((usedCount / total) * 100);
-  document.getElementById('progress-fill').style.width = pct + '%';
+  const u = getU();
+  const myU = u[cUser] || {};
+  const opened = Object.keys(myU).length;
+  document.getElementById('prog').style.width = Math.round(opened / total * 100) + '%';
 
   CATS.forEach(cat => {
     const lbl = document.createElement('p');
-    lbl.className = 'cat-label';
+    lbl.className = 'cat-lbl';
     lbl.textContent = cat;
     el.appendChild(lbl);
 
     HINTS.filter(h => h.cat === cat).forEach(hint => {
-      const hintUsed = myUsage[hint.id] || {};
-      const explainUsed = !!hintUsed.explain;
-      const scriptUsed = !!hintUsed.script;
+      const eu = used(hint.id, 'explain');
+      const su = used(hint.id, 'script');
 
       const card = document.createElement('div');
-      card.className = 'hint-card';
+      card.className = 'hcard';
 
-      const header = document.createElement('div');
-      header.className = 'hint-header';
-      header.innerHTML = `
-        <span class="hint-num">${hint.id}</span>
-        <span class="hint-name${explainUsed ? ' used' : ''}">${hint.title}</span>
-        <span class="badge ${explainUsed ? 'badge-used' : 'badge-new'}">${explainUsed ? 'Åpnet' : 'Nytt'}</span>`;
-      card.appendChild(header);
+      const hdr = document.createElement('div');
+      hdr.className = 'hcard-hdr';
+      hdr.innerHTML =
+        '<span class="hnum">' + hint.id + '</span>' +
+        '<span class="htitle' + (eu ? ' used' : '') + '">' + hint.title + '</span>' +
+        '<span class="badge ' + (eu ? 'badge-done' : 'badge-new') + '">' + (eu ? 'Åpnet' : 'Nytt') + '</span>';
 
       const body = document.createElement('div');
-      body.className = 'hint-body';
-      body.style.display = 'none';
+      body.className = 'hcard-body';
 
       const explainEl = document.createElement('div');
-      explainEl.className = 'hint-explain';
+      explainEl.className = 'explain';
       explainEl.textContent = hint.explain;
 
-      const divider = document.createElement('div');
-      divider.style.cssText = 'border-top: 1px solid var(--border); margin: 10px 0;';
+      const sep = document.createElement('hr');
+      sep.className = 'sep';
 
-      const scriptSection = document.createElement('div');
+      const scriptWrap = document.createElement('div');
 
-      if (!scriptUsed) {
+      if (!su) {
         const confirmEl = document.createElement('div');
-        confirmEl.className = 'confirm-box';
-        confirmEl.innerHTML = `<p>Verifiseringsscriptet viser nøyaktig hva som skal sjekkes. Vil du åpne det? Dette registreres som brukt.</p>
-          <div class="btn-row">
-            <button class="btn-warn" id="yes-s-${hint.id}">Ja, vis script</button>
-            <button onclick="this.closest('.confirm-box').remove()">Avbryt</button>
-          </div>`;
-        confirmEl.querySelector('#yes-s-' + hint.id).onclick = () => {
-          markUsed(hint.id, 'script');
-          renderScriptBox(scriptSection, hint);
+        confirmEl.className = 'confirm';
+        confirmEl.innerHTML =
+          '<p>Verifiseringsscriptet viser nøyaktig hva som sjekkes. Vil du åpne det? Dette registreres.</p>' +
+          '<div class="row"><button class="btn-warn" id="yes' + hint.id + '">Ja, vis script</button><button id="no' + hint.id + '">Avbryt</button></div>';
+
+        confirmEl.querySelector('#yes' + hint.id).addEventListener('click', function() {
+          mark(hint.id, 'script');
+          buildScript(scriptWrap, hint);
           confirmEl.remove();
-        };
-        scriptSection.appendChild(confirmEl);
+        });
+
+        confirmEl.querySelector('#no' + hint.id).addEventListener('click', function() {
+          confirmEl.remove();
+        });
+
+        scriptWrap.appendChild(confirmEl);
       } else {
-        renderScriptBox(scriptSection, hint);
+        buildScript(scriptWrap, hint);
       }
 
       body.appendChild(explainEl);
-      body.appendChild(divider);
-      body.appendChild(scriptSection);
+      body.appendChild(sep);
+      body.appendChild(scriptWrap);
+      card.appendChild(hdr);
       card.appendChild(body);
+      el.appendChild(card);
 
-      header.style.cursor = 'pointer';
-      header.onclick = () => {
+      hdr.addEventListener('click', function() {
         const open = body.style.display === 'block';
         body.style.display = open ? 'none' : 'block';
-        if (!open && !explainUsed) {
-          markUsed(hint.id, 'explain');
-          header.querySelector('.badge').className = 'badge badge-used';
-          header.querySelector('.badge').textContent = 'Åpnet';
-          header.querySelector('.hint-name').classList.add('used');
-          const u = getUsage();
-          const c = Object.keys(u[cUser] || {}).length;
-          const pct = Math.round((c / total) * 100);
-          document.getElementById('progress-fill').style.width = pct + '%';
+        if (!open && !eu) {
+          mark(hint.id, 'explain');
+          hdr.querySelector('.badge').className = 'badge badge-done';
+          hdr.querySelector('.badge').textContent = 'Åpnet';
+          hdr.querySelector('.htitle').classList.add('used');
+          const u2 = getU();
+          const c = Object.keys(u2[cUser] || {}).length;
+          document.getElementById('prog').style.width = Math.round(c / total * 100) + '%';
         }
-      };
-
-      el.appendChild(card);
+      });
     });
   });
 }
 
-function renderScriptBox(container, hint) {
+function buildScript(container, hint) {
   container.innerHTML = '';
   const box = document.createElement('div');
   box.className = 'script-box';
-  const lbl = document.createElement('div');
-  lbl.className = 'script-label';
-  lbl.innerHTML = `<span>Verifiseringsscript — Azure Cloud Shell (Bash)</span><button class="copy-btn" onclick="copyScript(this, \`${hint.script.replace(/`/g,'\\`')}\`)">Kopier</button>`;
+  const hdr = document.createElement('div');
+  hdr.className = 'script-hdr';
+  const lbl = document.createElement('span');
+  lbl.textContent = 'Verifiseringsscript — Azure Cloud Shell (Bash)';
+  const cpBtn = document.createElement('button');
+  cpBtn.className = 'copy-btn';
+  cpBtn.textContent = 'Kopier';
+  cpBtn.addEventListener('click', function() {
+    navigator.clipboard.writeText(hint.script).then(function() {
+      cpBtn.textContent = 'Kopiert!';
+      setTimeout(function() { cpBtn.textContent = 'Kopier'; }, 1500);
+    });
+  });
+  hdr.appendChild(lbl);
+  hdr.appendChild(cpBtn);
   const pre = document.createElement('pre');
   pre.textContent = hint.script;
-  box.appendChild(lbl);
+  box.appendChild(hdr);
   box.appendChild(pre);
   container.appendChild(box);
 }
 
-function copyScript(btn, text) {
-  navigator.clipboard.writeText(text).then(() => {
-    btn.textContent = 'Kopiert!';
-    setTimeout(() => btn.textContent = 'Kopier', 1500);
-  });
-}
-
 function renderTeacher() {
-  const usage = getUsage();
-  const log = getLog();
-  const users = Object.keys(usage).sort();
-  const total = users.reduce((s, u) => s + Object.keys(usage[u] || {}).length, 0);
+  const u = getU();
+  const l = getL();
+  const users = Object.keys(u).sort();
+  const total = users.reduce(function(s, x) { return s + Object.keys(u[x] || {}).length; }, 0);
   const avg = users.length ? (total / users.length).toFixed(1) : '0';
 
-  document.getElementById('t-stats').innerHTML = `
-    <div class="stat"><div class="stat-lbl">Studenter</div><div class="stat-val">${users.length}</div></div>
-    <div class="stat"><div class="stat-lbl">Hint åpnet totalt</div><div class="stat-val">${total}</div></div>
-    <div class="stat"><div class="stat-lbl">Snitt per student</div><div class="stat-val">${avg}</div></div>`;
+  document.getElementById('t-stats').innerHTML =
+    '<div class="stat"><div class="stat-lbl">Studenter</div><div class="stat-val">' + users.length + '</div></div>' +
+    '<div class="stat"><div class="stat-lbl">Hint åpnet</div><div class="stat-val">' + total + '</div></div>' +
+    '<div class="stat"><div class="stat-lbl">Snitt</div><div class="stat-val">' + avg + '</div></div>';
 
-  const mx = document.getElementById('t-matrix');
+  const mx = document.getElementById('t-mx');
   mx.innerHTML = '';
-  if (!users.length) { mx.innerHTML = '<p class="empty">Ingen hint brukt ennå.</p>'; }
-  else {
-    const wrap = document.createElement('div');
-    wrap.className = 'matrix-wrap';
+  if (!users.length) {
+    mx.innerHTML = '<p class="empty">Ingen hint brukt ennå.</p>';
+  } else {
+    const tbl = document.createElement('div');
+    tbl.className = 'tbl';
     const hdr = document.createElement('div');
-    hdr.className = 'matrix-row head';
+    hdr.className = 'trow th';
     hdr.innerHTML = '<span>Prefiks</span><span>Åpnet</span>' +
-      HINTS.map(h => `<span title="${h.title}" style="text-align:center;font-size:11px;">${h.id}</span>`).join('');
-    wrap.appendChild(hdr);
-    users.forEach(u => {
+      HINTS.map(function(h) { return '<span style="text-align:center" title="' + h.title + '">' + h.id + '</span>'; }).join('');
+    tbl.appendChild(hdr);
+    users.forEach(function(usr) {
       const row = document.createElement('div');
-      row.className = 'matrix-row';
-      const ud = usage[u] || {};
-      row.innerHTML = `<span><strong>${u}</strong></span><span>${Object.keys(ud).length} / ${HINTS.length}</span>` +
-        HINTS.map(h => `<span style="text-align:center;"><span class="dot ${ud[h.id] ? 'dot-on' : 'dot-off'}"></span></span>`).join('');
-      wrap.appendChild(row);
+      row.className = 'trow';
+      const ud = u[usr] || {};
+      row.innerHTML = '<span><strong>' + usr + '</strong></span><span>' + Object.keys(ud).length + ' / ' + HINTS.length + '</span>' +
+        HINTS.map(function(h) {
+          return '<span style="text-align:center"><span class="dot ' + (ud[h.id] ? 'dot-on' : 'dot-off') + '"></span></span>';
+        }).join('');
+      tbl.appendChild(row);
     });
-    mx.appendChild(wrap);
+    mx.appendChild(tbl);
   }
 
-  const lg = document.getElementById('t-log');
+  const lg = document.getElementById('t-lg');
   lg.innerHTML = '';
-  if (!log.length) { lg.innerHTML = '<p class="empty">Ingen aktivitet ennå.</p>'; }
-  else {
-    const wrap = document.createElement('div');
-    wrap.className = 'matrix-wrap';
-    [...log].reverse().slice(0, 40).forEach(entry => {
-      const h = HINTS.find(x => x.id === entry.hintId);
+  if (!l.length) {
+    lg.innerHTML = '<p class="empty">Ingen aktivitet ennå.</p>';
+  } else {
+    const tbl = document.createElement('div');
+    tbl.className = 'tbl';
+    l.slice().reverse().slice(0, 40).forEach(function(e) {
+      const h = HINTS.find(function(x) { return x.id === e.hintId; });
       const row = document.createElement('div');
-      row.className = 'log-item';
-      const ts = new Date(entry.ts);
+      row.className = 'lrow';
+      const ts = new Date(e.ts);
       const t = ts.toLocaleDateString('no-NO') + ' ' + ts.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
-      const type = entry.level === 'script' ? 'verifiseringsscript' : 'forklaring';
-      row.innerHTML = `<span><strong>${entry.user}</strong> åpnet ${type} for hint ${entry.hintId}: ${h ? h.title : ''}</span><span class="log-time">${t}</span>`;
-      wrap.appendChild(row);
+      const type = e.level === 'script' ? 'script' : 'forklaring';
+      row.innerHTML = '<span><strong>' + e.user + '</strong> åpnet ' + type + ' — hint ' + e.hintId + ': ' + (h ? h.title : '') + '</span><span class="ltime">' + t + '</span>';
+      tbl.appendChild(row);
     });
-    lg.appendChild(wrap);
+    lg.appendChild(tbl);
   }
 }
 
 function switchTab(id, btn) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('t-matrix').style.display = id === 't-matrix' ? 'block' : 'none';
-  document.getElementById('t-log').style.display = id === 't-log' ? 'block' : 'none';
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('on'); });
+  btn.classList.add('on');
+  document.getElementById('t-mx').style.display = id === 't-mx' ? 'block' : 'none';
+  document.getElementById('t-lg').style.display = id === 't-lg' ? 'block' : 'none';
 }
+
+document.getElementById('inp-prefix').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') loginStudent();
+});
+
+document.getElementById('inp-pw').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') loginTeacher();
+});
 </script>
 </body>
 </html>
