@@ -6,719 +6,511 @@
 <title>InfraIT.sec — Hint-system</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-  --bg: #f7f6f3;
-  --surface: #ffffff;
-  --border: #e0ddd6;
-  --border-strong: #c8c5bc;
-  --text: #1a1a18;
-  --muted: #6b6a65;
-  --hint: #9b9a94;
-  --accent: #1a56a0;
-  --accent-bg: #e8f0fb;
-  --warn: #7a4200;
-  --warn-bg: #fdf3e3;
-  --warn-border: #d4940a;
-  --code-bg: #f0efe8;
-  --radius: 10px;
-  --radius-sm: 6px;
+  --bg: #f7f6f3; --surface: #fff; --border: #e0ddd6;
+  --text: #1a1a18; --muted: #6b6a65; --faint: #9b9a94;
+  --accent: #1a56a0; --accent-bg: #e8f0fb;
+  --warn: #7a4200; --warn-bg: #fdf3e3; --warn-bd: #d4940a;
+  --code: #f0efe8; --r: 10px; --rs: 6px;
 }
-
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #141412;
-    --surface: #1e1e1c;
-    --border: #2e2e2a;
-    --border-strong: #444440;
-    --text: #e8e6e0;
-    --muted: #9b9a94;
-    --hint: #6b6a65;
-    --accent: #6ba3e8;
-    --accent-bg: #1a2a40;
-    --warn: #e8a840;
-    --warn-bg: #2a1e08;
-    --warn-border: #7a4200;
-    --code-bg: #2a2926;
+    --bg: #141412; --surface: #1e1e1c; --border: #2e2e2a;
+    --text: #e8e6e0; --muted: #9b9a94; --faint: #6b6a65;
+    --accent: #6ba3e8; --accent-bg: #1a2a40;
+    --warn: #e8a840; --warn-bg: #2a1e08; --warn-bd: #7a4200;
+    --code: #2a2926;
   }
 }
-
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
+body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
+header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
 .logo { font-size: 15px; font-weight: 600; }
-.logo-sub { font-weight: 400; color: var(--muted); }
+.logo em { font-weight: 400; font-style: normal; color: var(--muted); }
 #hdr-user { font-size: 13px; color: var(--muted); }
-
-main {
-  max-width: 660px;
-  margin: 0 auto;
-  padding: 32px 24px;
-}
+main { max-width: 660px; margin: 0 auto; padding: 32px 20px; }
 
 .view { display: none; }
 .view.active { display: block; }
 
-.login-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 28px;
-  max-width: 400px;
+.box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 28px; max-width: 400px; }
+.box h2 { font-size: 18px; margin-bottom: 4px; }
+.box p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+.flabel { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
+.finput {
+  display: block; width: 100%; padding: 9px 11px;
+  border: 1.5px solid var(--border); border-radius: var(--rs);
+  background: var(--bg); color: var(--text);
+  font-size: 15px; font-family: inherit; margin-bottom: 14px;
 }
-
-.login-box h2 { font-size: 18px; margin-bottom: 4px; }
-.login-box .sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
-
-.field { margin-bottom: 14px; }
-.field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
-
-.field input {
-  display: block;
-  width: 100%;
-  padding: 9px 11px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--bg);
-  color: var(--text);
-  font-size: 14px;
-  font-family: inherit;
-  outline: none;
-  position: relative;
-  z-index: 1;
-}
-
-.field input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(26, 86, 160, 0.15);
-}
-
-.row { display: flex; gap: 8px; margin-top: 4px; }
-
+.finput:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+.brow { display: flex; gap: 8px; }
 button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 16px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  white-space: nowrap;
+  padding: 9px 18px; border: 1.5px solid var(--border); border-radius: var(--rs);
+  background: var(--surface); color: var(--text); font-size: 14px; font-family: inherit;
+  cursor: pointer; transition: background .12s;
 }
-
 button:hover { background: var(--bg); }
-button.primary { background: var(--accent); color: #fff; border-color: var(--accent); flex: 1; }
-button.primary:hover { opacity: 0.88; }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.err { font-size: 12px; color: #a02020; margin-top: 8px; }
+button.p { background: var(--accent); color: #fff; border-color: var(--accent); flex: 1; }
+button.p:hover { opacity: .88; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.err { font-size: 12px; color: #b02020; margin-top: 8px; min-height: 16px; }
 
 .ph { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
 .ph h2 { font-size: 19px; }
-.ph .sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.ph small { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.prog { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 24px; overflow: hidden; }
+.prog-f { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s; }
 
-.prog-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 24px; overflow: hidden; }
-.prog-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s; }
-
-.cat-lbl {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .07em;
-  color: var(--hint);
-  margin: 24px 0 8px;
-}
-
-.hcard {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 8px;
-  overflow: hidden;
-}
-
-.hcard-hdr {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.hcard-hdr:hover { background: var(--bg); }
-.hnum { font-size: 12px; color: var(--hint); min-width: 16px; }
-.htitle { flex: 1; font-size: 14px; }
-.htitle.used { color: var(--muted); }
-
-.badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 20px;
-  white-space: nowrap;
-}
-.badge-new { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
-.badge-done { background: var(--bg); color: var(--hint); border: 1px solid var(--border); }
-
-.hcard-body { padding: 0 16px 14px; display: none; }
-
-.explain {
-  font-size: 13px;
-  color: var(--muted);
-  background: var(--bg);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  line-height: 1.65;
-  margin-bottom: 10px;
-}
-
+.clbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--faint); margin: 24px 0 8px; }
+.hcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; overflow: hidden; }
+.hhdr { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none; }
+.hhdr:hover { background: color-mix(in srgb, var(--bg) 60%, transparent); }
+.hnum { font-size: 12px; color: var(--faint); min-width: 18px; }
+.htit { flex: 1; font-size: 14px; }
+.htit.used { color: var(--muted); }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+.bnew { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-bd); }
+.bdone { background: var(--bg); color: var(--faint); border: 1px solid var(--border); }
+.hbody { padding: 0 16px 14px; display: none; }
+.explain { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: var(--rs); padding: 10px 12px; line-height: 1.65; margin-bottom: 10px; }
 .sep { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
-
-.confirm {
-  font-size: 13px;
-  color: var(--warn);
-  background: var(--warn-bg);
-  border: 1px solid var(--warn-border);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  margin-bottom: 10px;
-}
-
-.confirm p { margin-bottom: 8px; color: var(--muted); }
-.btn-warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
-.btn-warn:hover { background: var(--warn-border); color: #fff; }
-
-.script-box { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
-
-.script-hdr {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--code-bg);
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
-  font-size: 11px;
-  color: var(--hint);
-  text-transform: uppercase;
-  letter-spacing: .05em;
-}
-
-.copy-btn {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.copy-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-pre {
-  background: var(--code-bg);
-  padding: 12px;
-  font-size: 12px;
-  font-family: 'Courier New', 'Consolas', monospace;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--text);
-  line-height: 1.6;
-}
+.cbox { font-size: 13px; background: var(--warn-bg); border: 1px solid var(--warn-bd); border-radius: var(--rs); padding: 10px 12px; margin-bottom: 10px; }
+.cbox p { color: var(--muted); margin-bottom: 8px; }
+.bwarn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-bd); }
+.bwarn:hover { background: var(--warn-bd); color: #fff; }
+.sbox { border: 1px solid var(--border); border-radius: var(--rs); overflow: hidden; }
+.shdr { display: flex; justify-content: space-between; align-items: center; background: var(--code); padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; }
+.cpbtn { font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; }
+.cpbtn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+pre { background: var(--code); padding: 12px; font-size: 12px; font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; color: var(--text); line-height: 1.6; }
 
 .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px; }
-.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
-.stat-lbl { font-size: 12px; color: var(--muted); margin-bottom: 3px; }
-.stat-val { font-size: 24px; font-weight: 700; }
-
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; }
+.slbl { font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+.sval { font-size: 24px; font-weight: 700; }
 .tabs { display: flex; gap: 4px; margin-bottom: 14px; }
-.tab { font-size: 13px; padding: 6px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer; background: transparent; color: var(--muted); }
+.tab { font-size: 13px; padding: 6px 14px; border-radius: var(--rs); border: 1px solid var(--border); cursor: pointer; background: transparent; color: var(--muted); }
 .tab.on { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
-
-.tbl { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.trow { display: grid; grid-template-columns: 90px 60px repeat(8, 1fr); align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); font-size: 13px; gap: 4px; }
+.tbl { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+.trow { display: grid; grid-template-columns: 90px 60px repeat(8,1fr); align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); font-size: 13px; gap: 4px; }
 .trow:last-child { border-bottom: none; }
-.trow.th { background: var(--bg); font-weight: 600; font-size: 11px; color: var(--muted); }
-.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin: auto; }
-.dot-on { background: var(--warn); }
-.dot-off { background: var(--border); border: 1px solid var(--border-strong); }
-
+.trow.th { background: var(--bg); font-size: 11px; color: var(--muted); font-weight: 600; }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: block; margin: auto; }
+.don { background: var(--warn); }
+.doff { background: var(--border); border: 1px solid var(--border); }
 .lrow { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
 .lrow:last-child { border-bottom: none; }
-.ltime { font-size: 12px; color: var(--hint); white-space: nowrap; margin-left: 12px; }
-
+.ltime { font-size: 12px; color: var(--faint); white-space: nowrap; margin-left: 12px; }
 .empty { font-size: 13px; color: var(--muted); padding: 12px 0; }
-.footnote { font-size: 12px; color: var(--hint); text-align: center; margin-top: 24px; }
+.foot { font-size: 12px; color: var(--faint); text-align: center; margin-top: 24px; }
+.loading { font-size: 13px; color: var(--muted); padding: 8px 0; }
 </style>
 </head>
 <body>
-
 <header>
-  <span class="logo">InfraIT.sec <span class="logo-sub">/ sikkerhetsvurdering</span></span>
+  <span class="logo">InfraIT.sec <em>/ hint-system</em></span>
   <span id="hdr-user"></span>
 </header>
-
 <main>
 
 <div id="v-login" class="view active">
-  <div class="login-box">
-    <h2>Hint-system</h2>
-    <p class="sub">Logg inn med ditt prefiks for å se hint og verifiseringsscript.</p>
-    <div class="field">
-      <label for="inp-prefix">Ditt prefiks (f.eks. on03)</label>
-      <input type="text" id="inp-prefix" placeholder="on03" autocomplete="off" spellcheck="false">
+  <div class="box">
+    <h2>Sikkerhetsvurdering</h2>
+    <p>Logg inn med ditt prefiks for å se hint og verifiseringsscript.</p>
+    <label class="flabel" for="f-prefix">Ditt prefiks (f.eks. on03 eller tim84)</label>
+    <input class="finput" type="text" id="f-prefix" placeholder="on03" autocomplete="off" spellcheck="false">
+    <div class="brow">
+      <button class="p" id="btn-student">Logg inn som student</button>
+      <button id="btn-goto-teacher">Faglærer</button>
     </div>
-    <div class="row">
-      <button class="primary" onclick="loginStudent()">Logg inn som student</button>
-      <button onclick="showV('v-tlg')">Faglærer</button>
-    </div>
-    <div id="err-login" class="err"></div>
+    <div class="err" id="err-login"></div>
   </div>
 </div>
 
 <div id="v-tlg" class="view">
-  <div class="login-box">
+  <div class="box">
     <h2>Faglærer-tilgang</h2>
-    <p class="sub">Viser hint-bruk registrert i denne nettleseren.</p>
-    <div class="field">
-      <label for="inp-pw">Passord</label>
-      <input type="password" id="inp-pw" placeholder="••••••••">
+    <p>Gir tilgang til hint-oversikt og aktivitetslogg.</p>
+    <label class="flabel" for="f-pw">Passord</label>
+    <input class="finput" type="password" id="f-pw" placeholder="••••••••">
+    <div class="brow">
+      <button class="p" id="btn-teacher">Logg inn</button>
+      <button id="btn-back">Tilbake</button>
     </div>
-    <div class="row">
-      <button class="primary" id="btn-tlg" onclick="loginTeacher()">Logg inn</button>
-      <button onclick="showV('v-login')">Tilbake</button>
-    </div>
-    <div id="err-teacher" class="err"></div>
+    <div class="err" id="err-teacher"></div>
   </div>
 </div>
 
 <div id="v-student" class="view">
   <div class="ph">
-    <div>
-      <h2>Hint-oversikt</h2>
-      <p class="sub" id="s-sub"></p>
-    </div>
-    <button onclick="logout()">Logg ut</button>
+    <div><h2>Hint-oversikt</h2><small id="s-sub"></small></div>
+    <button id="btn-logout-s">Logg ut</button>
   </div>
-  <div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0"></div></div>
+  <div class="prog"><div class="prog-f" id="prog" style="width:0"></div></div>
   <div id="hlist"></div>
-  <p class="footnote">Hint-bruk lagres lokalt i denne nettleseren.</p>
+  <p class="foot" id="s-foot"></p>
 </div>
 
 <div id="v-teacher" class="view">
   <div class="ph">
     <h2>Faglærer-oversikt</h2>
-    <div class="row">
-      <button onclick="renderTeacher()">Oppdater</button>
-      <button onclick="logout()">Logg ut</button>
+    <div class="brow">
+      <button id="btn-refresh">Oppdater</button>
+      <button id="btn-logout-t">Logg ut</button>
     </div>
   </div>
-  <div class="stats" id="t-stats"></div>
+  <div class="stats" id="t-stats"><div class="stat"><div class="slbl">Laster...</div></div></div>
   <div class="tabs">
-    <button class="tab on" onclick="switchTab('t-mx',this)">Hint-matrise</button>
-    <button class="tab" onclick="switchTab('t-lg',this)">Aktivitetslogg</button>
+    <button class="tab on" id="tab-mx">Hint-matrise</button>
+    <button class="tab" id="tab-lg">Aktivitetslogg</button>
   </div>
-  <div id="t-mx"></div>
-  <div id="t-lg" style="display:none"></div>
-  <p class="footnote">Data lagres per nettleser — viser kun aktivitet fra denne maskinen.</p>
+  <div id="t-mx"><p class="loading">Henter data...</p></div>
+  <div id="t-lg" style="display:none"><p class="loading">Henter data...</p></div>
+  <p class="foot" id="t-foot"></p>
 </div>
 
 </main>
-
 <script>
-const TPW = 'infraitsec2024';
-const SK_U = 'iits_usage';
-const SK_L = 'iits_log';
+// ============================================================
+// KONFIGURASJON
+// ============================================================
+// Lim inn din Google Apps Script Web App URL her etter deploy:
+var APPS_SCRIPT_URL = '';
+// Faglærer-passord:
+var TPW = 'infraitsec2024';
+// ============================================================
 
-const HINTS = [
+var HINTS = [
   { id:1, cat:'Nettverkssikkerhet', title:'NSG-regler på management-subnettet',
     explain:'Undersøk inngående NSG-regler på management-subnettet. Er alle porter begrenset til nødvendige kilder, eller er noen regler åpne for et for bredt adresserom — for eksempel 0.0.0.0/0?',
-    script:`# Sjekk NSG-regler på management-subnettet
-PREFIX="<ditt-prefiks>"
-RG="${PREFIX}-rg-infraitsec-network"
-NSG="${PREFIX}-nsg-management"
-
-echo "--- Inngående regler for $NSG ---"
-az network nsg rule list \\
-  --resource-group $RG \\
-  --nsg-name $NSG \\
-  --query "[].{Navn:name, Prioritet:priority, Kilde:sourceAddressPrefix, Port:destinationPortRange, Tilgang:access}" \\
-  --output table
-
-# Se etter regler med Kilde = * eller 0.0.0.0/0`},
-
+    script:'# Sjekk NSG-regler på management-subnettet\nPREFIX="<ditt-prefiks>"\nRG="${PREFIX}-rg-infraitsec-network"\nNSG="${PREFIX}-nsg-management"\n\necho "--- Inngående regler for $NSG ---"\naz network nsg rule list \\\n  --resource-group $RG \\\n  --nsg-name $NSG \\\n  --query "[].{Navn:name, Prioritet:priority, Kilde:sourceAddressPrefix, Port:destinationPortRange, Tilgang:access}" \\\n  --output table\n\n# Se etter regler med Kilde = * eller 0.0.0.0/0'
+  },
   { id:2, cat:'Nettverkssikkerhet', title:'Trafikk mellom spoke-er',
     explain:'I en hub-spoke-topologi skal trafikk mellom spoke-er tvinges gjennom hub-en via en User Defined Route (UDR). Uten UDR kan ressurser kommunisere direkte på tvers av spoke-er og omgå sentralisert kontroll.',
-    script:`# Sjekk om det finnes UDR på AKS-subnettet
-PREFIX="<ditt-prefiks>"
-RG="${PREFIX}-rg-infraitsec-network"
-VNET="${PREFIX}-vnet-spoke"
-SUBNET="${PREFIX}-snet-aks"
-
-ROUTE_TABLE=$(az network vnet subnet show \\
-  --resource-group $RG \\
-  --vnet-name $VNET \\
-  --name $SUBNET \\
-  --query "routeTable.id" \\
-  --output tsv)
-
-if [ -z "$ROUTE_TABLE" ] || [ "$ROUTE_TABLE" = "null" ]; then
-  echo "FUNN: Ingen UDR tilknyttet AKS-subnettet"
-  echo "      Trafikk mellom spoke-er er ikke tvunget gjennom hub"
-else
-  echo "OK:   UDR er tilknyttet"
-fi`},
-
+    script:'# Sjekk om det finnes UDR på AKS-subnettet\nPREFIX="<ditt-prefiks>"\nRG="${PREFIX}-rg-infraitsec-network"\nVNET="${PREFIX}-vnet-spoke"\nSUBNET="${PREFIX}-snet-aks"\n\nROUTE_TABLE=$(az network vnet subnet show \\\n  --resource-group $RG \\\n  --vnet-name $VNET \\\n  --name $SUBNET \\\n  --query "routeTable.id" \\\n  --output tsv)\n\nif [ -z "$ROUTE_TABLE" ] || [ "$ROUTE_TABLE" = "null" ]; then\n  echo "FUNN: Ingen UDR tilknyttet AKS-subnettet"\nelse\n  echo "OK:   UDR er tilknyttet"\nfi'
+  },
   { id:3, cat:'Nettverkssikkerhet', title:'Public IP på en VM',
     explain:'Sjekk om noen VM-er i spoke-en har en direkte tilknyttet public IP-adresse. En VM med public IP er eksponert mot internett uten å gå via VPN eller Bastion.',
-    script:`# Finn VM-er med public IP
-PREFIX="<ditt-prefiks>"
-RG="${PREFIX}-rg-infraitsec-network"
-
-az vm list-ip-addresses \\
-  --resource-group $RG \\
-  --query "[].{VM:virtualMachine.name, PublicIP:virtualMachine.network.publicIpAddresses[0].ipAddress}" \\
-  --output table
-
-# Forventet: ingen VM skal ha en Public IP-adresse`},
-
+    script:'# Finn VM-er med public IP\nPREFIX="<ditt-prefiks>"\nRG="${PREFIX}-rg-infraitsec-network"\n\naz vm list-ip-addresses \\\n  --resource-group $RG \\\n  --query "[].{VM:virtualMachine.name, PublicIP:virtualMachine.network.publicIpAddresses[0].ipAddress}" \\\n  --output table\n\n# Forventet: ingen VM skal ha en Public IP-adresse'
+  },
   { id:4, cat:'Identitet og tilgang', title:'RBAC-omfang',
     explain:'Undersøk om noen brukere har RBAC-tildelinger på subscription-nivå istedenfor resource group-nivå. Principle of least privilege tilsier at tilgang bør begrenses til lavest nødvendige omfang.',
-    script:`# Sjekk RBAC på subscription-nivå
-SUB=$(az account show --query id --output tsv)
-
-az role assignment list \\
-  --scope "/subscriptions/$SUB" \\
-  --query "[?principalType!='ServicePrincipal'].{Bruker:principalName, Rolle:roleDefinitionName}" \\
-  --output table
-
-# Studenter bør kun ha tilgang på resource group-nivå`},
-
+    script:'# Sjekk RBAC på subscription-nivå\nSUB=$(az account show --query id --output tsv)\n\naz role assignment list \\\n  --scope "/subscriptions/$SUB" \\\n  --query "[?principalType!=\'ServicePrincipal\'].{Bruker:principalName, Rolle:roleDefinitionName}" \\\n  --output table\n\n# Studenter bør kun ha tilgang på resource group-nivå'
+  },
   { id:5, cat:'Identitet og tilgang', title:'Storage Account-autentisering',
-    explain:'Sjekk om applikasjonen bruker kontonøkler for å autentisere mot Storage Account. Nøkkelbasert autentisering gir full tilgang og kan ikke begrenses per operasjon — Managed Identity er sikrere.',
-    script:`# Sjekk om kontonøkkel-tilgang er aktivert
-PREFIX="<ditt-prefiks>"
-RG="${PREFIX}-rg-infraitsec-compute"
-STORAGE="${PREFIX}stginfraisec"
-
-KEY_ACCESS=$(az storage account show \\
-  --name $STORAGE \\
-  --resource-group $RG \\
-  --query "allowSharedKeyAccess" \\
-  --output tsv)
-
-if [ "$KEY_ACCESS" = "true" ] || [ -z "$KEY_ACCESS" ]; then
-  echo "FUNN: Kontonøkkel-autentisering er aktivert på $STORAGE"
-else
-  echo "OK:   Kontonøkkel-autentisering er deaktivert"
-fi`},
-
+    explain:'Sjekk om applikasjonen bruker kontonøkler for autentisering mot Storage Account. Nøkkelbasert autentisering gir full tilgang — Managed Identity er det sikrere alternativet.',
+    script:'# Sjekk om kontonøkkel-tilgang er aktivert\nPREFIX="<ditt-prefiks>"\nRG="${PREFIX}-rg-infraitsec-compute"\nSTORAGE="${PREFIX}stginfraisec"\n\nKEY_ACCESS=$(az storage account show \\\n  --name $STORAGE \\\n  --resource-group $RG \\\n  --query "allowSharedKeyAccess" \\\n  --output tsv)\n\nif [ "$KEY_ACCESS" = "true" ] || [ -z "$KEY_ACCESS" ]; then\n  echo "FUNN: Kontonøkkel-autentisering er aktivert"\nelse\n  echo "OK:   Kontonøkkel-autentisering er deaktivert"\nfi'
+  },
   { id:6, cat:'Identitet og tilgang', title:'Tjenestebrukere og tillatelser',
-    explain:'Undersøk om AKS-clusterets managed identity har bredere tillatelser enn nødvendig. Network Contributor på subscription-nivå er for bredt — rollen bør begrenses til det aktuelle subnettet.',
-    script:`# Sjekk AKS managed identity sine roller
-PREFIX="<ditt-prefiks>"
-RG="${PREFIX}-rg-infraitsec-compute"
-AKS="${PREFIX}-aks-infraitsec"
-
-IDENTITY=$(az aks show \\
-  --resource-group $RG \\
-  --name $AKS \\
-  --query identity.principalId \\
-  --output tsv)
-
-az role assignment list \\
-  --assignee $IDENTITY \\
-  --query "[].{Rolle:roleDefinitionName, Omfang:scope}" \\
-  --output table
-
-# Network Contributor bør kun stå på subnet-nivå, ikke subscription`},
-
+    explain:'Undersøk om AKS-clusterets managed identity har bredere tillatelser enn nødvendig. Network Contributor på subscription-nivå er for bredt — rollen bør begrenses til subnet-nivå.',
+    script:'# Sjekk AKS managed identity sine roller\nPREFIX="<ditt-prefiks>"\nRG="${PREFIX}-rg-infraitsec-compute"\nAKS="${PREFIX}-aks-infraitsec"\n\nIDENTITY=$(az aks show \\\n  --resource-group $RG \\\n  --name $AKS \\\n  --query identity.principalId \\\n  --output tsv)\n\naz role assignment list \\\n  --assignee $IDENTITY \\\n  --query "[].{Rolle:roleDefinitionName, Omfang:scope}" \\\n  --output table\n\n# Network Contributor bør kun stå på subnet-nivå'
+  },
   { id:7, cat:'Ressurskonfigurasjon', title:'Storage Account nettverkstilgang',
-    explain:'Sjekk om Storage Account er tilgjengelig fra internett. Med public network access aktivert kan hvem som helst forsøke å nå storage-endepunktet — uavhengig av om de har nøkkelen.',
-    script:`# Sjekk om Storage Account er offentlig tilgjengelig
-PREFIX="<ditt-prefiks>"
-RG="${PREFIX}-rg-infraitsec-compute"
-STORAGE="${PREFIX}stginfraisec"
-
-DEFAULT=$(az storage account show \\
-  --name $STORAGE \\
-  --resource-group $RG \\
-  --query "networkRuleSet.defaultAction" \\
-  --output tsv)
-
-if [ "$DEFAULT" = "Allow" ] || [ -z "$DEFAULT" ]; then
-  echo "FUNN: Storage Account er offentlig tilgjengelig (defaultAction: Allow)"
-else
-  echo "OK:   Tilgang begrenset (defaultAction: $DEFAULT)"
-fi`},
-
+    explain:'Sjekk om Storage Account er tilgjengelig fra internett. Med public network access aktivert kan hvem som helst forsøke å nå storage-endepunktet.',
+    script:'# Sjekk om Storage Account er offentlig tilgjengelig\nPREFIX="<ditt-prefiks>"\nRG="${PREFIX}-rg-infraitsec-compute"\nSTORAGE="${PREFIX}stginfraisec"\n\nDEFAULT=$(az storage account show \\\n  --name $STORAGE \\\n  --resource-group $RG \\\n  --query "networkRuleSet.defaultAction" \\\n  --output tsv)\n\nif [ "$DEFAULT" = "Allow" ] || [ -z "$DEFAULT" ]; then\n  echo "FUNN: Storage Account er offentlig tilgjengelig"\nelse\n  echo "OK:   Tilgang begrenset (defaultAction: $DEFAULT)"\nfi'
+  },
   { id:8, cat:'Ressurskonfigurasjon', title:'Kubernetes Service-type',
     explain:'Sjekk om Kubernetes-tjenestene i AKS er eksponert med intern eller ekstern load balancer. Uten annotasjonen azure-load-balancer-internal: "true" vil tjenesten få en offentlig IP-adresse.',
-    script:`# Sjekk load balancer-type for Kubernetes-tjenester
-PREFIX="<ditt-prefiks>"
-RG="${PREFIX}-rg-infraitsec-compute"
-AKS="${PREFIX}-aks-infraitsec"
-
-az aks get-credentials --resource-group $RG --name $AKS 2>/dev/null
-
-kubectl get services --all-namespaces \\
-  -o custom-columns="NAVN:.metadata.name,TYPE:.spec.type,EKSTERN-IP:.status.loadBalancer.ingress[0].ip" \\
-  | grep -i loadbalancer
-
-# Forventet: EKSTERN-IP skal være privat (10.1.x.x)
-# En offentlig IP er en sikkerhetssvakhet`}
+    script:'# Sjekk load balancer-type for Kubernetes-tjenester\nPREFIX="<ditt-prefiks>"\nRG="${PREFIX}-rg-infraitsec-compute"\nAKS="${PREFIX}-aks-infraitsec"\n\naz aks get-credentials --resource-group $RG --name $AKS 2>/dev/null\n\nkubectl get services --all-namespaces \\\n  -o custom-columns="NAVN:.metadata.name,TYPE:.spec.type,EKSTERN-IP:.status.loadBalancer.ingress[0].ip" \\\n  | grep -i loadbalancer\n\n# Forventet: EKSTERN-IP skal være privat (10.1.x.x)'
+  }
 ];
 
-const CATS = [...new Set(HINTS.map(h => h.cat))];
-let cUser = null;
+var CATS = [];
+HINTS.forEach(function(h) { if (CATS.indexOf(h.cat) === -1) CATS.push(h.cat); });
 
+var currentUser = null;
+var useSheets = APPS_SCRIPT_URL !== '';
+
+// ---- Storage helpers ----
+function localGet(key) {
+  try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch(e) { return null; }
+}
+function localSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+
+async function fetchUsage() {
+  if (!useSheets) {
+    return localGet('iits_usage') || {};
+  }
+  try {
+    var r = await fetch(APPS_SCRIPT_URL + '?action=getUsage');
+    return await r.json();
+  } catch(e) { return localGet('iits_usage') || {}; }
+}
+
+async function fetchLog() {
+  if (!useSheets) {
+    return localGet('iits_log') || [];
+  }
+  try {
+    var r = await fetch(APPS_SCRIPT_URL + '?action=getLog');
+    return await r.json();
+  } catch(e) { return localGet('iits_log') || []; }
+}
+
+async function saveUsed(user, hintId, level) {
+  var u = localGet('iits_usage') || {};
+  if (!u[user]) u[user] = {};
+  if (!u[user][hintId]) u[user][hintId] = {};
+  u[user][hintId][level] = true;
+  localSet('iits_usage', u);
+
+  var l = localGet('iits_log') || [];
+  l.push({ user: user, hintId: hintId, level: level, ts: new Date().toISOString() });
+  localSet('iits_log', l);
+
+  if (useSheets) {
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'markUsed', user: user, hintId: hintId, level: level })
+      });
+    } catch(e) {}
+  }
+}
+
+// ---- View switching ----
 function showV(id) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  var views = document.querySelectorAll('.view');
+  for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
   document.getElementById(id).classList.add('active');
 }
 
-function getU() { try { return JSON.parse(localStorage.getItem(SK_U) || '{}'); } catch { return {}; } }
-function getL() { try { return JSON.parse(localStorage.getItem(SK_L) || '[]'); } catch { return []; } }
-function saveU(d) { localStorage.setItem(SK_U, JSON.stringify(d)); }
-function saveL(d) { localStorage.setItem(SK_L, JSON.stringify(d)); }
-
-function mark(hintId, level) {
-  const u = getU();
-  if (!u[cUser]) u[cUser] = {};
-  if (!u[cUser][hintId]) u[cUser][hintId] = {};
-  u[cUser][hintId][level] = true;
-  saveU(u);
-  const l = getL();
-  l.push({ user: cUser, hintId, level, ts: new Date().toISOString() });
-  saveL(l);
-}
-
-function used(hintId, level) {
-  const u = getU();
-  return !!(u[cUser] && u[cUser][hintId] && u[cUser][hintId][level]);
-}
-
-function loginStudent() {
-  const p = document.getElementById('inp-prefix').value.trim().toLowerCase();
-  if (!p || p.length < 2) {
-    document.getElementById('err-login').textContent = 'Skriv inn et gyldig prefiks.';
+// ---- Login ----
+function doLoginStudent() {
+  var val = document.getElementById('f-prefix').value;
+  var prefix = val ? val.trim().toLowerCase() : '';
+  var errEl = document.getElementById('err-login');
+  if (!prefix || prefix.length < 2) {
+    errEl.textContent = 'Skriv inn et gyldig prefiks (minst 2 tegn).';
     return;
   }
-  cUser = p;
-  document.getElementById('hdr-user').textContent = p;
-  document.getElementById('s-sub').textContent = 'Prefiks: ' + p + ' — hint-bruk lagres i denne nettleseren';
+  errEl.textContent = '';
+  currentUser = prefix;
+  document.getElementById('hdr-user').textContent = prefix;
+  document.getElementById('s-sub').textContent = 'Prefiks: ' + prefix;
+  var foot = document.getElementById('s-foot');
+  foot.textContent = useSheets ? 'Hint-bruk lagres sentralt.' : 'Hint-bruk lagres lokalt i denne nettleseren.';
   showV('v-student');
   renderStudent();
 }
 
-function loginTeacher() {
-  const pw = document.getElementById('inp-pw').value;
-  if (pw !== TPW) {
-    document.getElementById('err-teacher').textContent = 'Feil passord.';
-    return;
-  }
+function doLoginTeacher() {
+  var pw = document.getElementById('f-pw').value;
+  var errEl = document.getElementById('err-teacher');
+  if (pw !== TPW) { errEl.textContent = 'Feil passord.'; return; }
+  errEl.textContent = '';
   document.getElementById('hdr-user').textContent = 'faglærer';
+  var foot = document.getElementById('t-foot');
+  foot.textContent = useSheets ? 'Data hentes fra Google Sheets.' : 'Data lagres per nettleser — kun aktivitet fra denne maskinen vises.';
   showV('v-teacher');
   renderTeacher();
 }
 
-function logout() {
-  cUser = null;
+function doLogout() {
+  currentUser = null;
   document.getElementById('hdr-user').textContent = '';
-  document.getElementById('inp-prefix').value = '';
-  document.getElementById('inp-pw').value = '';
+  document.getElementById('f-prefix').value = '';
+  document.getElementById('f-pw').value = '';
   document.getElementById('err-login').textContent = '';
   document.getElementById('err-teacher').textContent = '';
   showV('v-login');
+  setTimeout(function() { document.getElementById('f-prefix').focus(); }, 100);
 }
 
-function renderStudent() {
-  const el = document.getElementById('hlist');
-  el.innerHTML = '';
-  const total = HINTS.length;
-  const u = getU();
-  const myU = u[cUser] || {};
-  const opened = Object.keys(myU).length;
-  document.getElementById('prog').style.width = Math.round(opened / total * 100) + '%';
+// ---- Bind buttons (no inline onclick) ----
+document.getElementById('btn-student').addEventListener('click', doLoginStudent);
+document.getElementById('btn-goto-teacher').addEventListener('click', function() { showV('v-tlg'); });
+document.getElementById('btn-teacher').addEventListener('click', doLoginTeacher);
+document.getElementById('btn-back').addEventListener('click', function() { showV('v-login'); });
+document.getElementById('btn-logout-s').addEventListener('click', doLogout);
+document.getElementById('btn-logout-t').addEventListener('click', doLogout);
+document.getElementById('btn-refresh').addEventListener('click', renderTeacher);
+document.getElementById('f-prefix').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLoginStudent(); });
+document.getElementById('f-pw').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLoginTeacher(); });
+document.getElementById('tab-mx').addEventListener('click', function() { switchTab('t-mx', this); });
+document.getElementById('tab-lg').addEventListener('click', function() { switchTab('t-lg', this); });
 
-  CATS.forEach(cat => {
-    const lbl = document.createElement('p');
-    lbl.className = 'cat-lbl';
+// ---- Render student ----
+async function renderStudent() {
+  var el = document.getElementById('hlist');
+  el.innerHTML = '<p class="loading">Laster...</p>';
+  var usage = await fetchUsage();
+  var myU = usage[currentUser] || {};
+  var opened = Object.keys(myU).length;
+  var total = HINTS.length;
+  document.getElementById('prog').style.width = Math.round(opened / total * 100) + '%';
+  el.innerHTML = '';
+
+  CATS.forEach(function(cat) {
+    var lbl = document.createElement('p');
+    lbl.className = 'clbl';
     lbl.textContent = cat;
     el.appendChild(lbl);
 
-    HINTS.filter(h => h.cat === cat).forEach(hint => {
-      const eu = used(hint.id, 'explain');
-      const su = used(hint.id, 'script');
-
-      const card = document.createElement('div');
+    HINTS.filter(function(h) { return h.cat === cat; }).forEach(function(hint) {
+      var eu = myU[hint.id] && myU[hint.id].explain;
+      var su = myU[hint.id] && myU[hint.id].script;
+      var card = document.createElement('div');
       card.className = 'hcard';
 
-      const hdr = document.createElement('div');
-      hdr.className = 'hcard-hdr';
+      var hdr = document.createElement('div');
+      hdr.className = 'hhdr';
+      hdr.setAttribute('role', 'button');
+      hdr.setAttribute('tabindex', '0');
       hdr.innerHTML =
         '<span class="hnum">' + hint.id + '</span>' +
-        '<span class="htitle' + (eu ? ' used' : '') + '">' + hint.title + '</span>' +
-        '<span class="badge ' + (eu ? 'badge-done' : 'badge-new') + '">' + (eu ? 'Åpnet' : 'Nytt') + '</span>';
+        '<span class="htit' + (eu ? ' used' : '') + '">' + hint.title + '</span>' +
+        '<span class="badge ' + (eu ? 'bdone' : 'bnew') + '">' + (eu ? 'Åpnet' : 'Nytt') + '</span>';
 
-      const body = document.createElement('div');
-      body.className = 'hcard-body';
+      var body = document.createElement('div');
+      body.className = 'hbody';
 
-      const explainEl = document.createElement('div');
-      explainEl.className = 'explain';
-      explainEl.textContent = hint.explain;
+      var expEl = document.createElement('div');
+      expEl.className = 'explain';
+      expEl.textContent = hint.explain;
 
-      const sep = document.createElement('hr');
+      var sep = document.createElement('hr');
       sep.className = 'sep';
 
-      const scriptWrap = document.createElement('div');
-
-      if (!su) {
-        const confirmEl = document.createElement('div');
-        confirmEl.className = 'confirm';
-        confirmEl.innerHTML =
-          '<p>Verifiseringsscriptet viser nøyaktig hva som sjekkes. Vil du åpne det? Dette registreres.</p>' +
-          '<div class="row"><button class="btn-warn" id="yes' + hint.id + '">Ja, vis script</button><button id="no' + hint.id + '">Avbryt</button></div>';
-
-        confirmEl.querySelector('#yes' + hint.id).addEventListener('click', function() {
-          mark(hint.id, 'script');
-          buildScript(scriptWrap, hint);
-          confirmEl.remove();
-        });
-
-        confirmEl.querySelector('#no' + hint.id).addEventListener('click', function() {
-          confirmEl.remove();
-        });
-
-        scriptWrap.appendChild(confirmEl);
+      var sw = document.createElement('div');
+      if (su) {
+        buildScript(sw, hint);
       } else {
-        buildScript(scriptWrap, hint);
+        var cbox = document.createElement('div');
+        cbox.className = 'cbox';
+        cbox.innerHTML = '<p>Verifiseringsscriptet viser nøyaktig hva som sjekkes. Vil du åpne det? Dette registreres.</p>' +
+          '<div class="brow"><button class="bwarn">Ja, vis script</button><button>Avbryt</button></div>';
+        cbox.querySelectorAll('button')[0].addEventListener('click', function() {
+          saveUsed(currentUser, hint.id, 'script').then(function() {
+            buildScript(sw, hint);
+            cbox.remove();
+            var u = localGet('iits_usage') || {};
+            var c = Object.keys(u[currentUser] || {}).length;
+            document.getElementById('prog').style.width = Math.round(c / total * 100) + '%';
+          });
+        });
+        cbox.querySelectorAll('button')[1].addEventListener('click', function() { cbox.remove(); });
+        sw.appendChild(cbox);
       }
 
-      body.appendChild(explainEl);
+      body.appendChild(expEl);
       body.appendChild(sep);
-      body.appendChild(scriptWrap);
+      body.appendChild(sw);
       card.appendChild(hdr);
       card.appendChild(body);
       el.appendChild(card);
 
-      hdr.addEventListener('click', function() {
-        const open = body.style.display === 'block';
+      function toggleBody() {
+        var open = body.style.display === 'block';
         body.style.display = open ? 'none' : 'block';
         if (!open && !eu) {
-          mark(hint.id, 'explain');
-          hdr.querySelector('.badge').className = 'badge badge-done';
-          hdr.querySelector('.badge').textContent = 'Åpnet';
-          hdr.querySelector('.htitle').classList.add('used');
-          const u2 = getU();
-          const c = Object.keys(u2[cUser] || {}).length;
-          document.getElementById('prog').style.width = Math.round(c / total * 100) + '%';
+          eu = true;
+          saveUsed(currentUser, hint.id, 'explain').then(function() {
+            hdr.querySelector('.badge').className = 'badge bdone';
+            hdr.querySelector('.badge').textContent = 'Åpnet';
+            hdr.querySelector('.htit').classList.add('used');
+            var u = localGet('iits_usage') || {};
+            var c = Object.keys(u[currentUser] || {}).length;
+            document.getElementById('prog').style.width = Math.round(c / total * 100) + '%';
+          });
         }
-      });
+      }
+
+      hdr.addEventListener('click', toggleBody);
+      hdr.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleBody(); } });
     });
   });
 }
 
 function buildScript(container, hint) {
   container.innerHTML = '';
-  const box = document.createElement('div');
-  box.className = 'script-box';
-  const hdr = document.createElement('div');
-  hdr.className = 'script-hdr';
-  const lbl = document.createElement('span');
+  var box = document.createElement('div');
+  box.className = 'sbox';
+  var shdr = document.createElement('div');
+  shdr.className = 'shdr';
+  var lbl = document.createElement('span');
   lbl.textContent = 'Verifiseringsscript — Azure Cloud Shell (Bash)';
-  const cpBtn = document.createElement('button');
-  cpBtn.className = 'copy-btn';
+  var cpBtn = document.createElement('button');
+  cpBtn.className = 'cpbtn';
   cpBtn.textContent = 'Kopier';
-  cpBtn.addEventListener('click', function() {
+  cpBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
     navigator.clipboard.writeText(hint.script).then(function() {
       cpBtn.textContent = 'Kopiert!';
       setTimeout(function() { cpBtn.textContent = 'Kopier'; }, 1500);
+    }).catch(function() {
+      cpBtn.textContent = 'Feil';
     });
   });
-  hdr.appendChild(lbl);
-  hdr.appendChild(cpBtn);
-  const pre = document.createElement('pre');
+  shdr.appendChild(lbl);
+  shdr.appendChild(cpBtn);
+  var pre = document.createElement('pre');
   pre.textContent = hint.script;
-  box.appendChild(hdr);
+  box.appendChild(shdr);
   box.appendChild(pre);
   container.appendChild(box);
 }
 
-function renderTeacher() {
-  const u = getU();
-  const l = getL();
-  const users = Object.keys(u).sort();
-  const total = users.reduce(function(s, x) { return s + Object.keys(u[x] || {}).length; }, 0);
-  const avg = users.length ? (total / users.length).toFixed(1) : '0';
+// ---- Render teacher ----
+async function renderTeacher() {
+  document.getElementById('t-mx').innerHTML = '<p class="loading">Henter data...</p>';
+  document.getElementById('t-lg').innerHTML = '<p class="loading">Henter data...</p>';
+
+  var usage = await fetchUsage();
+  var log = await fetchLog();
+  var users = Object.keys(usage).sort();
+  var total = users.reduce(function(s, u) { return s + Object.keys(usage[u] || {}).length; }, 0);
+  var avg = users.length ? (total / users.length).toFixed(1) : '0';
 
   document.getElementById('t-stats').innerHTML =
-    '<div class="stat"><div class="stat-lbl">Studenter</div><div class="stat-val">' + users.length + '</div></div>' +
-    '<div class="stat"><div class="stat-lbl">Hint åpnet</div><div class="stat-val">' + total + '</div></div>' +
-    '<div class="stat"><div class="stat-lbl">Snitt</div><div class="stat-val">' + avg + '</div></div>';
+    '<div class="stat"><div class="slbl">Studenter</div><div class="sval">' + users.length + '</div></div>' +
+    '<div class="stat"><div class="slbl">Hint åpnet</div><div class="sval">' + total + '</div></div>' +
+    '<div class="stat"><div class="slbl">Snitt</div><div class="sval">' + avg + '</div></div>';
 
-  const mx = document.getElementById('t-mx');
+  var mx = document.getElementById('t-mx');
   mx.innerHTML = '';
   if (!users.length) {
     mx.innerHTML = '<p class="empty">Ingen hint brukt ennå.</p>';
   } else {
-    const tbl = document.createElement('div');
+    var tbl = document.createElement('div');
     tbl.className = 'tbl';
-    const hdr = document.createElement('div');
+    var hdr = document.createElement('div');
     hdr.className = 'trow th';
     hdr.innerHTML = '<span>Prefiks</span><span>Åpnet</span>' +
       HINTS.map(function(h) { return '<span style="text-align:center" title="' + h.title + '">' + h.id + '</span>'; }).join('');
     tbl.appendChild(hdr);
-    users.forEach(function(usr) {
-      const row = document.createElement('div');
+    users.forEach(function(u) {
+      var row = document.createElement('div');
       row.className = 'trow';
-      const ud = u[usr] || {};
-      row.innerHTML = '<span><strong>' + usr + '</strong></span><span>' + Object.keys(ud).length + ' / ' + HINTS.length + '</span>' +
-        HINTS.map(function(h) {
-          return '<span style="text-align:center"><span class="dot ' + (ud[h.id] ? 'dot-on' : 'dot-off') + '"></span></span>';
-        }).join('');
+      var ud = usage[u] || {};
+      row.innerHTML = '<span><strong>' + u + '</strong></span><span>' + Object.keys(ud).length + ' / ' + HINTS.length + '</span>' +
+        HINTS.map(function(h) { return '<span><span class="dot ' + (ud[h.id] ? 'don' : 'doff') + '"></span></span>'; }).join('');
       tbl.appendChild(row);
     });
     mx.appendChild(tbl);
   }
 
-  const lg = document.getElementById('t-lg');
+  var lg = document.getElementById('t-lg');
   lg.innerHTML = '';
-  if (!l.length) {
+  var entries = Array.isArray(log) ? log : [];
+  if (!entries.length) {
     lg.innerHTML = '<p class="empty">Ingen aktivitet ennå.</p>';
   } else {
-    const tbl = document.createElement('div');
-    tbl.className = 'tbl';
-    l.slice().reverse().slice(0, 40).forEach(function(e) {
-      const h = HINTS.find(function(x) { return x.id === e.hintId; });
-      const row = document.createElement('div');
+    var tbl2 = document.createElement('div');
+    tbl2.className = 'tbl';
+    entries.slice().reverse().slice(0, 40).forEach(function(e) {
+      var h = HINTS.filter(function(x) { return x.id === e.hintId; })[0];
+      var row = document.createElement('div');
       row.className = 'lrow';
-      const ts = new Date(e.ts);
-      const t = ts.toLocaleDateString('no-NO') + ' ' + ts.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
-      const type = e.level === 'script' ? 'script' : 'forklaring';
+      var ts = new Date(e.ts);
+      var t = ts.toLocaleDateString('no-NO') + ' ' + ts.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+      var type = e.level === 'script' ? 'script' : 'forklaring';
       row.innerHTML = '<span><strong>' + e.user + '</strong> åpnet ' + type + ' — hint ' + e.hintId + ': ' + (h ? h.title : '') + '</span><span class="ltime">' + t + '</span>';
-      tbl.appendChild(row);
+      tbl2.appendChild(row);
     });
-    lg.appendChild(tbl);
+    lg.appendChild(tbl2);
   }
 }
 
@@ -728,14 +520,6 @@ function switchTab(id, btn) {
   document.getElementById('t-mx').style.display = id === 't-mx' ? 'block' : 'none';
   document.getElementById('t-lg').style.display = id === 't-lg' ? 'block' : 'none';
 }
-
-document.getElementById('inp-prefix').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') loginStudent();
-});
-
-document.getElementById('inp-pw').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') loginTeacher();
-});
 </script>
 </body>
 </html>
