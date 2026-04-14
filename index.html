@@ -28,10 +28,8 @@ header { background: var(--surface); border-bottom: 1px solid var(--border); pad
 .logo em { font-weight: 400; font-style: normal; color: var(--muted); }
 #hdr-user { font-size: 13px; color: var(--muted); }
 main { max-width: 660px; margin: 0 auto; padding: 32px 20px; }
-
 .view { display: none; }
 .view.active { display: block; }
-
 .box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 28px; max-width: 400px; }
 .box h2 { font-size: 18px; margin-bottom: 4px; }
 .box p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
@@ -42,7 +40,7 @@ main { max-width: 660px; margin: 0 auto; padding: 32px 20px; }
   background: var(--bg); color: var(--text);
   font-size: 15px; font-family: inherit; margin-bottom: 14px;
 }
-.finput:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+.finput:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,160,.15); }
 .brow { display: flex; gap: 8px; }
 button {
   padding: 9px 18px; border: 1.5px solid var(--border); border-radius: var(--rs);
@@ -54,17 +52,15 @@ button.p { background: var(--accent); color: #fff; border-color: var(--accent); 
 button.p:hover { opacity: .88; }
 button:disabled { opacity: .5; cursor: not-allowed; }
 .err { font-size: 12px; color: #b02020; margin-top: 8px; min-height: 16px; }
-
 .ph { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
 .ph h2 { font-size: 19px; }
 .ph small { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
 .prog { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 24px; overflow: hidden; }
 .prog-f { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s; }
-
 .clbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--faint); margin: 24px 0 8px; }
 .hcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; overflow: hidden; }
 .hhdr { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none; }
-.hhdr:hover { background: color-mix(in srgb, var(--bg) 60%, transparent); }
+.hhdr:hover { background: rgba(0,0,0,.03); }
 .hnum { font-size: 12px; color: var(--faint); min-width: 18px; }
 .htit { flex: 1; font-size: 14px; }
 .htit.used { color: var(--muted); }
@@ -83,7 +79,6 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .cpbtn { font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; }
 .cpbtn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 pre { background: var(--code); padding: 12px; font-size: 12px; font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; color: var(--text); line-height: 1.6; }
-
 .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px; }
 .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; }
 .slbl { font-size: 12px; color: var(--muted); margin-bottom: 3px; }
@@ -97,13 +92,12 @@ pre { background: var(--code); padding: 12px; font-size: 12px; font-family: 'Cou
 .trow.th { background: var(--bg); font-size: 11px; color: var(--muted); font-weight: 600; }
 .dot { width: 12px; height: 12px; border-radius: 50%; display: block; margin: auto; }
 .don { background: var(--warn); }
-.doff { background: var(--border); border: 1px solid var(--border); }
+.doff { background: var(--border); border: 1px solid var(--faint); }
 .lrow { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
 .lrow:last-child { border-bottom: none; }
 .ltime { font-size: 12px; color: var(--faint); white-space: nowrap; margin-left: 12px; }
 .empty { font-size: 13px; color: var(--muted); padding: 12px 0; }
 .foot { font-size: 12px; color: var(--faint); text-align: center; margin-top: 24px; }
-.loading { font-size: 13px; color: var(--muted); padding: 8px 0; }
 </style>
 </head>
 <body>
@@ -164,19 +158,16 @@ pre { background: var(--code); padding: 12px; font-size: 12px; font-family: 'Cou
     <button class="tab on" id="tab-mx">Hint-matrise</button>
     <button class="tab" id="tab-lg">Aktivitetslogg</button>
   </div>
-  <div id="t-mx"><p class="loading">Henter data...</p></div>
-  <div id="t-lg" style="display:none"><p class="loading">Henter data...</p></div>
+  <div id="t-mx"><p class="empty">Henter data...</p></div>
+  <div id="t-lg" style="display:none"><p class="empty">Henter data...</p></div>
   <p class="foot" id="t-foot"></p>
 </div>
 
 </main>
 <script>
 // ============================================================
-// KONFIGURASJON
-// ============================================================
-// Lim inn din Google Apps Script Web App URL her etter deploy:
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9ojCwkRzyfbbMglnFvxRHS3kwPFlU1tPfGLN7NVLbRq3D1wVvEvWJudbU5vTlEy2q3w/exec';
-// Faglærer-passord:
+// KONFIGURASJON — lim inn din Apps Script URL her:
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx73W9xCz5UHB4DmdMCfgjs1thrXQLIeXPVbcUfwUyKjN9HJq2awZGnNNv5qHusi8LtMg/exec';
 var TPW = 'infraitsec2024';
 // ============================================================
 
@@ -219,68 +210,75 @@ var CATS = [];
 HINTS.forEach(function(h) { if (CATS.indexOf(h.cat) === -1) CATS.push(h.cat); });
 
 var currentUser = null;
-var useSheets = APPS_SCRIPT_URL !== '';
+var useSheets = false;
 
-// ---- Storage helpers ----
-function localGet(key) {
-  try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch(e) { return null; }
-}
-function localSet(key, val) {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+// ---- API via GET kun — løser CORS ----
+function apiUrl(params) {
+  var qs = Object.keys(params).map(function(k) {
+    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+  }).join('&');
+  return APPS_SCRIPT_URL + '?' + qs;
 }
 
 async function fetchUsage() {
-  if (!useSheets) {
+  if (!useSheets) return localGet('iits_usage') || {};
+  try {
+    var r = await fetch(apiUrl({ action: 'getUsage' }));
+    var data = await r.json();
+    return data || {};
+  } catch(e) {
+    console.warn('fetchUsage feilet, bruker localStorage:', e);
     return localGet('iits_usage') || {};
   }
-  try {
-    var r = await fetch(APPS_SCRIPT_URL + '?action=getUsage');
-    return await r.json();
-  } catch(e) { return localGet('iits_usage') || {}; }
 }
 
 async function fetchLog() {
-  if (!useSheets) {
+  if (!useSheets) return localGet('iits_log') || [];
+  try {
+    var r = await fetch(apiUrl({ action: 'getLog' }));
+    var data = await r.json();
+    return Array.isArray(data) ? data : [];
+  } catch(e) {
+    console.warn('fetchLog feilet, bruker localStorage:', e);
     return localGet('iits_log') || [];
   }
-  try {
-    var r = await fetch(APPS_SCRIPT_URL + '?action=getLog');
-    return await r.json();
-  } catch(e) { return localGet('iits_log') || []; }
 }
 
 async function saveUsed(user, hintId, level) {
+  // Alltid lagre lokalt som fallback
   var u = localGet('iits_usage') || {};
   if (!u[user]) u[user] = {};
   if (!u[user][hintId]) u[user][hintId] = {};
   u[user][hintId][level] = true;
   localSet('iits_usage', u);
-
   var l = localGet('iits_log') || [];
   l.push({ user: user, hintId: hintId, level: level, ts: new Date().toISOString() });
   localSet('iits_log', l);
 
+  // Send til Sheets via GET
   if (useSheets) {
     try {
-      await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'markUsed', user: user, hintId: hintId, level: level })
-      });
-    } catch(e) {}
+      await fetch(apiUrl({ action: 'markUsed', user: user, hintId: hintId, level: level }));
+    } catch(e) {
+      console.warn('Sheets markUsed feilet:', e);
+    }
   }
 }
 
-// ---- View switching ----
+// ---- localStorage helpers ----
+function localGet(key) { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch(e) { return null; } }
+function localSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} }
+
+// ---- View ----
 function showV(id) {
-  var views = document.querySelectorAll('.view');
-  for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
 }
 
 // ---- Login ----
 function doLoginStudent() {
   var val = document.getElementById('f-prefix').value;
-  var prefix = val ? val.trim().toLowerCase() : '';
+  var prefix = (val || '').trim().toLowerCase();
   var errEl = document.getElementById('err-login');
   if (!prefix || prefix.length < 2) {
     errEl.textContent = 'Skriv inn et gyldig prefiks (minst 2 tegn).';
@@ -290,20 +288,22 @@ function doLoginStudent() {
   currentUser = prefix;
   document.getElementById('hdr-user').textContent = prefix;
   document.getElementById('s-sub').textContent = 'Prefiks: ' + prefix;
-  var foot = document.getElementById('s-foot');
-  foot.textContent = useSheets ? 'Hint-bruk lagres sentralt.' : 'Hint-bruk lagres lokalt i denne nettleseren.';
+  document.getElementById('s-foot').textContent = useSheets
+    ? 'Hint-bruk lagres sentralt i Google Sheets.'
+    : 'Hint-bruk lagres lokalt i denne nettleseren.';
   showV('v-student');
   renderStudent();
 }
 
 function doLoginTeacher() {
-  var pw = document.getElementById('f-pw').value;
+  var pw = (document.getElementById('f-pw').value || '');
   var errEl = document.getElementById('err-teacher');
   if (pw !== TPW) { errEl.textContent = 'Feil passord.'; return; }
   errEl.textContent = '';
   document.getElementById('hdr-user').textContent = 'faglærer';
-  var foot = document.getElementById('t-foot');
-  foot.textContent = useSheets ? 'Data hentes fra Google Sheets.' : 'Data lagres per nettleser — kun aktivitet fra denne maskinen vises.';
+  document.getElementById('t-foot').textContent = useSheets
+    ? 'Data hentes fra Google Sheets.'
+    : 'Data lagres per nettleser — kun aktivitet fra denne maskinen vises.';
   showV('v-teacher');
   renderTeacher();
 }
@@ -316,26 +316,35 @@ function doLogout() {
   document.getElementById('err-login').textContent = '';
   document.getElementById('err-teacher').textContent = '';
   showV('v-login');
-  setTimeout(function() { document.getElementById('f-prefix').focus(); }, 100);
+  setTimeout(function() { document.getElementById('f-prefix').focus(); }, 50);
 }
 
-// ---- Bind buttons (no inline onclick) ----
-document.getElementById('btn-student').addEventListener('click', doLoginStudent);
-document.getElementById('btn-goto-teacher').addEventListener('click', function() { showV('v-tlg'); });
-document.getElementById('btn-teacher').addEventListener('click', doLoginTeacher);
-document.getElementById('btn-back').addEventListener('click', function() { showV('v-login'); });
-document.getElementById('btn-logout-s').addEventListener('click', doLogout);
-document.getElementById('btn-logout-t').addEventListener('click', doLogout);
-document.getElementById('btn-refresh').addEventListener('click', renderTeacher);
-document.getElementById('f-prefix').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLoginStudent(); });
-document.getElementById('f-pw').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLoginTeacher(); });
-document.getElementById('tab-mx').addEventListener('click', function() { switchTab('t-mx', this); });
-document.getElementById('tab-lg').addEventListener('click', function() { switchTab('t-lg', this); });
+// ---- Bind all event listeners after DOM is ready ----
+window.addEventListener('DOMContentLoaded', function() {
+  useSheets = APPS_SCRIPT_URL !== '';
+
+  document.getElementById('btn-student').addEventListener('click', doLoginStudent);
+  document.getElementById('btn-goto-teacher').addEventListener('click', function() { showV('v-tlg'); });
+  document.getElementById('btn-teacher').addEventListener('click', doLoginTeacher);
+  document.getElementById('btn-back').addEventListener('click', function() { showV('v-login'); });
+  document.getElementById('btn-logout-s').addEventListener('click', doLogout);
+  document.getElementById('btn-logout-t').addEventListener('click', doLogout);
+  document.getElementById('btn-refresh').addEventListener('click', renderTeacher);
+  document.getElementById('tab-mx').addEventListener('click', function() { switchTab('t-mx', this); });
+  document.getElementById('tab-lg').addEventListener('click', function() { switchTab('t-lg', this); });
+
+  document.getElementById('f-prefix').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLoginStudent();
+  });
+  document.getElementById('f-pw').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLoginTeacher();
+  });
+});
 
 // ---- Render student ----
 async function renderStudent() {
   var el = document.getElementById('hlist');
-  el.innerHTML = '<p class="loading">Laster...</p>';
+  el.innerHTML = '<p class="empty">Laster...</p>';
   var usage = await fetchUsage();
   var myU = usage[currentUser] || {};
   var opened = Object.keys(myU).length;
@@ -350,8 +359,9 @@ async function renderStudent() {
     el.appendChild(lbl);
 
     HINTS.filter(function(h) { return h.cat === cat; }).forEach(function(hint) {
-      var eu = myU[hint.id] && myU[hint.id].explain;
-      var su = myU[hint.id] && myU[hint.id].script;
+      var eu = !!(myU[hint.id] && myU[hint.id].explain);
+      var su = !!(myU[hint.id] && myU[hint.id].script);
+
       var card = document.createElement('div');
       card.className = 'hcard';
 
@@ -380,15 +390,15 @@ async function renderStudent() {
       } else {
         var cbox = document.createElement('div');
         cbox.className = 'cbox';
-        cbox.innerHTML = '<p>Verifiseringsscriptet viser nøyaktig hva som sjekkes. Vil du åpne det? Dette registreres.</p>' +
+        cbox.innerHTML =
+          '<p>Verifiseringsscriptet viser nøyaktig hva som sjekkes. Vil du åpne det? Dette registreres.</p>' +
           '<div class="brow"><button class="bwarn">Ja, vis script</button><button>Avbryt</button></div>';
+
         cbox.querySelectorAll('button')[0].addEventListener('click', function() {
           saveUsed(currentUser, hint.id, 'script').then(function() {
             buildScript(sw, hint);
             cbox.remove();
-            var u = localGet('iits_usage') || {};
-            var c = Object.keys(u[currentUser] || {}).length;
-            document.getElementById('prog').style.width = Math.round(c / total * 100) + '%';
+            updateProgress();
           });
         });
         cbox.querySelectorAll('button')[1].addEventListener('click', function() { cbox.remove(); });
@@ -411,17 +421,23 @@ async function renderStudent() {
             hdr.querySelector('.badge').className = 'badge bdone';
             hdr.querySelector('.badge').textContent = 'Åpnet';
             hdr.querySelector('.htit').classList.add('used');
-            var u = localGet('iits_usage') || {};
-            var c = Object.keys(u[currentUser] || {}).length;
-            document.getElementById('prog').style.width = Math.round(c / total * 100) + '%';
+            updateProgress();
           });
         }
       }
 
       hdr.addEventListener('click', toggleBody);
-      hdr.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleBody(); } });
+      hdr.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleBody(); }
+      });
     });
   });
+}
+
+function updateProgress() {
+  var u = localGet('iits_usage') || {};
+  var c = Object.keys(u[currentUser] || {}).length;
+  document.getElementById('prog').style.width = Math.round(c / HINTS.length * 100) + '%';
 }
 
 function buildScript(container, hint) {
@@ -440,9 +456,7 @@ function buildScript(container, hint) {
     navigator.clipboard.writeText(hint.script).then(function() {
       cpBtn.textContent = 'Kopiert!';
       setTimeout(function() { cpBtn.textContent = 'Kopier'; }, 1500);
-    }).catch(function() {
-      cpBtn.textContent = 'Feil';
-    });
+    }).catch(function() { cpBtn.textContent = 'Feil'; });
   });
   shdr.appendChild(lbl);
   shdr.appendChild(cpBtn);
@@ -455,8 +469,8 @@ function buildScript(container, hint) {
 
 // ---- Render teacher ----
 async function renderTeacher() {
-  document.getElementById('t-mx').innerHTML = '<p class="loading">Henter data...</p>';
-  document.getElementById('t-lg').innerHTML = '<p class="loading">Henter data...</p>';
+  document.getElementById('t-mx').innerHTML = '<p class="empty">Henter data...</p>';
+  document.getElementById('t-lg').innerHTML = '<p class="empty">Henter data...</p>';
 
   var usage = await fetchUsage();
   var log = await fetchLog();
@@ -479,14 +493,20 @@ async function renderTeacher() {
     var hdr = document.createElement('div');
     hdr.className = 'trow th';
     hdr.innerHTML = '<span>Prefiks</span><span>Åpnet</span>' +
-      HINTS.map(function(h) { return '<span style="text-align:center" title="' + h.title + '">' + h.id + '</span>'; }).join('');
+      HINTS.map(function(h) {
+        return '<span style="text-align:center" title="' + h.title + '">' + h.id + '</span>';
+      }).join('');
     tbl.appendChild(hdr);
     users.forEach(function(u) {
       var row = document.createElement('div');
       row.className = 'trow';
       var ud = usage[u] || {};
-      row.innerHTML = '<span><strong>' + u + '</strong></span><span>' + Object.keys(ud).length + ' / ' + HINTS.length + '</span>' +
-        HINTS.map(function(h) { return '<span><span class="dot ' + (ud[h.id] ? 'don' : 'doff') + '"></span></span>'; }).join('');
+      row.innerHTML =
+        '<span><strong>' + u + '</strong></span>' +
+        '<span>' + Object.keys(ud).length + ' / ' + HINTS.length + '</span>' +
+        HINTS.map(function(h) {
+          return '<span><span class="dot ' + (ud[h.id] ? 'don' : 'doff') + '"></span></span>';
+        }).join('');
       tbl.appendChild(row);
     });
     mx.appendChild(tbl);
@@ -500,14 +520,16 @@ async function renderTeacher() {
   } else {
     var tbl2 = document.createElement('div');
     tbl2.className = 'tbl';
-    entries.slice().reverse().slice(0, 40).forEach(function(e) {
+    entries.slice().reverse().slice(0, 50).forEach(function(e) {
       var h = HINTS.filter(function(x) { return x.id === e.hintId; })[0];
       var row = document.createElement('div');
       row.className = 'lrow';
       var ts = new Date(e.ts);
       var t = ts.toLocaleDateString('no-NO') + ' ' + ts.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
       var type = e.level === 'script' ? 'script' : 'forklaring';
-      row.innerHTML = '<span><strong>' + e.user + '</strong> åpnet ' + type + ' — hint ' + e.hintId + ': ' + (h ? h.title : '') + '</span><span class="ltime">' + t + '</span>';
+      row.innerHTML =
+        '<span><strong>' + e.user + '</strong> åpnet ' + type + ' — hint ' + e.hintId + ': ' + (h ? h.title : '') + '</span>' +
+        '<span class="ltime">' + t + '</span>';
       tbl2.appendChild(row);
     });
     lg.appendChild(tbl2);
