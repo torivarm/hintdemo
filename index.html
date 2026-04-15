@@ -3,131 +3,99 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>InfraIT.sec — Sikkerhetsvurdering</title>
+<title>InfraIT.sec — Hint-system</title>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #f7f6f3; --surface: #fff; --border: #e0ddd6;
-  --text: #1a1a18; --muted: #6b6a65; --faint: #9b9a94;
-  --accent: #1a56a0; --accent-bg: #e8f0fb;
-  --warn: #7a4200; --warn-bg: #fdf3e3; --warn-bd: #d4940a;
-  --ok: #1a6b3a; --ok-bg: #e8f5ee; --ok-bd: #2d9e5a;
-  --code: #f0efe8; --r: 10px; --rs: 6px;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #141412; --surface: #1e1e1c; --border: #2e2e2a;
-    --text: #e8e6e0; --muted: #9b9a94; --faint: #6b6a65;
-    --accent: #6ba3e8; --accent-bg: #1a2a40;
-    --warn: #e8a840; --warn-bg: #2a1e08; --warn-bd: #7a4200;
-    --ok: #4ab870; --ok-bg: #0a2018; --ok-bd: #1a6b3a;
-    --code: #2a2926;
-  }
-}
-body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
-.logo { font-size: 15px; font-weight: 600; }
-.logo em { font-weight: 400; font-style: normal; color: var(--muted); }
-#hdr-user { font-size: 13px; color: var(--muted); }
-main { max-width: 680px; margin: 0 auto; padding: 32px 20px; }
-.view { display: none; }
-.view.active { display: block; }
-.box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 28px; max-width: 400px; }
-.box h2 { font-size: 18px; margin-bottom: 4px; }
-.box p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
-.flabel { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
-.finput {
-  display: block; width: 100%; padding: 9px 11px;
-  border: 1.5px solid var(--border); border-radius: var(--rs);
-  background: var(--bg); color: var(--text);
-  font-size: 15px; font-family: inherit; margin-bottom: 14px;
-}
-.finput:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,160,.15); }
-.brow { display: flex; gap: 8px; }
-button { padding: 9px 18px; border: 1.5px solid var(--border); border-radius: var(--rs); background: var(--surface); color: var(--text); font-size: 14px; font-family: inherit; cursor: pointer; transition: background .12s; }
-button:hover { background: var(--bg); }
-button.p { background: var(--accent); color: #fff; border-color: var(--accent); flex: 1; }
-button.p:hover { opacity: .88; }
-.err { font-size: 12px; color: #b02020; margin-top: 8px; min-height: 16px; }
-.ph { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-.ph h2 { font-size: 19px; }
-.ph small { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
-.prog { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 8px; overflow: hidden; }
-.prog-f { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s; }
-.prog-lbl { font-size: 12px; color: var(--faint); margin-bottom: 24px; }
-.clbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--faint); margin: 24px 0 8px; }
-.hcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; overflow: hidden; }
-.hhdr { display: flex; align-items: center; gap: 10px; padding: 14px 16px; cursor: pointer; user-select: none; }
-.hhdr:hover { background: rgba(0,0,0,.03); }
-.hnum { font-size: 12px; color: var(--faint); min-width: 18px; font-weight: 600; }
-.htit { flex: 1; font-size: 14px; font-weight: 500; }
-.htit.used { color: var(--muted); font-weight: 400; }
-.badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
-.bnew  { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-bd); }
-.bdone { background: var(--bg); color: var(--faint); border: 1px solid var(--border); }
-.hbody { padding: 0 16px 16px; display: none; }
-.explain { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: var(--rs); padding: 12px 14px; line-height: 1.7; margin-bottom: 12px; }
-.explain strong { color: var(--text); }
-.sep { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
-.script-lbl { font-size: 12px; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-.script-lbl span { font-size: 11px; background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok-bd); border-radius: 20px; padding: 1px 8px; }
-.cbox { font-size: 13px; background: var(--warn-bg); border: 1px solid var(--warn-bd); border-radius: var(--rs); padding: 12px 14px; margin-bottom: 10px; }
-.cbox p { color: var(--muted); margin-bottom: 10px; line-height: 1.6; }
-.bwarn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-bd); }
-.bwarn:hover { background: var(--warn-bd); color: #fff; }
-.sbox { border: 1px solid var(--border); border-radius: var(--rs); overflow: hidden; }
-.shdr { display: flex; justify-content: space-between; align-items: center; background: var(--code); padding: 7px 12px; border-bottom: 1px solid var(--border); font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; }
-.cpbtn { font-size: 11px; padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; }
-.cpbtn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-pre { background: var(--code); padding: 14px; font-size: 12px; font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; color: var(--text); line-height: 1.65; }
-.stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px; }
-.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; }
-.slbl { font-size: 12px; color: var(--muted); margin-bottom: 3px; }
-.sval { font-size: 24px; font-weight: 700; }
-.tabs { display: flex; gap: 4px; margin-bottom: 14px; }
-.tab { font-size: 13px; padding: 6px 14px; border-radius: var(--rs); border: 1px solid var(--border); cursor: pointer; background: transparent; color: var(--muted); }
-.tab.on { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
-.tbl { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
-.trow { display: grid; grid-template-columns: 90px 60px repeat(8,1fr); align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); font-size: 13px; gap: 4px; }
-.trow:last-child { border-bottom: none; }
-.trow.th { background: var(--bg); font-size: 11px; color: var(--muted); font-weight: 600; }
-.dot { width: 12px; height: 12px; border-radius: 50%; display: block; margin: auto; }
-.don { background: var(--warn); }
-.doff { background: var(--border); border: 1px solid var(--faint); }
-.lrow { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
-.lrow:last-child { border-bottom: none; }
-.ltime { font-size: 12px; color: var(--faint); white-space: nowrap; margin-left: 12px; }
-.empty { font-size: 13px; color: var(--muted); padding: 12px 0; }
-.foot { font-size: 12px; color: var(--faint); text-align: center; margin-top: 24px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f6f3;--surface:#fff;--border:#e0ddd6;--text:#1a1a18;--muted:#6b6a65;--faint:#9b9a94;--accent:#1a56a0;--accent-bg:#e8f0fb;--warn:#7a4200;--warn-bg:#fdf3e3;--warn-bd:#d4940a;--code:#f0efe8;--r:10px;--rs:6px}
+@media(prefers-color-scheme:dark){:root{--bg:#141412;--surface:#1e1e1c;--border:#2e2e2a;--text:#e8e6e0;--muted:#9b9a94;--faint:#6b6a65;--accent:#6ba3e8;--accent-bg:#1a2a40;--warn:#e8a840;--warn-bg:#2a1e08;--warn-bd:#7a4200;--code:#2a2926}}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:15px;font-weight:600}.logo em{font-weight:400;font-style:normal;color:var(--muted)}
+#hdr-user{font-size:13px;color:var(--muted)}
+main{max-width:680px;margin:0 auto;padding:32px 20px}
+.view{display:none}.view.active{display:block}
+.box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;max-width:400px}
+.box h2{font-size:18px;margin-bottom:4px}.box p{font-size:13px;color:var(--muted);margin-bottom:20px}
+.flabel{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+.finput{display:block;width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--bg);color:var(--text);font-size:15px;font-family:inherit;margin-bottom:14px}
+.finput:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,160,.15)}
+.brow{display:flex;gap:8px}
+button{padding:9px 18px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--surface);color:var(--text);font-size:14px;font-family:inherit;cursor:pointer;transition:background .12s}
+button:hover{background:var(--bg)}
+button.p{background:var(--accent);color:#fff;border-color:var(--accent);flex:1}
+button.p:hover{opacity:.88}
+.err{font-size:12px;color:#b02020;margin-top:8px;min-height:16px}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.ph h2{font-size:19px}.ph small{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.prog{height:4px;background:var(--border);border-radius:2px;margin-bottom:8px;overflow:hidden}
+.prog-f{height:100%;background:var(--accent);border-radius:2px;transition:width .4s}
+.prog-lbl{font-size:12px;color:var(--faint);margin-bottom:24px}
+.clbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);margin:24px 0 8px}
+.hcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
+.hhdr{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;user-select:none}
+.hhdr:hover{background:rgba(0,0,0,.03)}
+.hnum{font-size:12px;color:var(--faint);min-width:18px;font-weight:600}
+.htit{flex:1;font-size:14px;font-weight:500}.htit.used{color:var(--muted);font-weight:400}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.bnew{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-bd)}
+.bdone{background:var(--bg);color:var(--faint);border:1px solid var(--border)}
+.hbody{padding:0 16px 16px;display:none}
+.explain{font-size:13px;color:var(--muted);background:var(--bg);border-radius:var(--rs);padding:12px 14px;line-height:1.7;margin-bottom:12px;white-space:pre-line}
+.sep{border:none;border-top:1px solid var(--border);margin:12px 0}
+.slbl{font-size:12px;color:var(--muted);margin-bottom:8px}
+.cbox{font-size:13px;background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:var(--rs);padding:12px 14px;margin-bottom:10px}
+.cbox p{color:var(--muted);margin-bottom:10px;line-height:1.6}
+.bwarn{background:var(--warn-bg);color:var(--warn);border-color:var(--warn-bd)}
+.bwarn:hover{background:var(--warn-bd);color:#fff}
+.sbox{border:1px solid var(--border);border-radius:var(--rs);overflow:hidden}
+.shdr{display:flex;justify-content:space-between;align-items:center;background:var(--code);padding:7px 12px;border-bottom:1px solid var(--border);font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.05em}
+.cpbtn{font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer}
+.cpbtn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+pre{background:var(--code);padding:14px;font-size:12px;font-family:"Courier New",monospace;white-space:pre-wrap;word-break:break-word;color:var(--text);line-height:1.65}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.slbl2{font-size:12px;color:var(--muted);margin-bottom:3px}.sval{font-size:24px;font-weight:700}
+.tabs{display:flex;gap:4px;margin-bottom:14px}
+.tab{font-size:13px;padding:6px 14px;border-radius:var(--rs);border:1px solid var(--border);cursor:pointer;background:transparent;color:var(--muted)}
+.tab.on{background:var(--accent-bg);color:var(--accent);border-color:var(--accent)}
+.tbl{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.trow{display:grid;grid-template-columns:90px 60px repeat(8,1fr);align-items:center;padding:8px 14px;border-bottom:1px solid var(--border);font-size:13px;gap:4px}
+.trow:last-child{border-bottom:none}
+.trow.th{background:var(--bg);font-size:11px;color:var(--muted);font-weight:600}
+.dot{width:12px;height:12px;border-radius:50%;display:block;margin:auto}
+.don{background:var(--warn)}.doff{background:var(--border);border:1px solid var(--faint)}
+.lrow{display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px}
+.lrow:last-child{border-bottom:none}
+.ltime{font-size:12px;color:var(--faint);white-space:nowrap;margin-left:12px}
+.empty{font-size:13px;color:var(--muted);padding:12px 0}
+.foot{font-size:12px;color:var(--faint);text-align:center;margin-top:24px}
 </style>
 </head>
 <body>
 <header>
-  <span class="logo">InfraIT.sec <em>/ sikkerhetsvurdering</em></span>
+  <span class="logo">InfraIT.sec <em>/ hint-system</em></span>
   <span id="hdr-user"></span>
 </header>
 <main>
-
 <div id="v-login" class="view active">
   <div class="box">
     <h2>Hint-system</h2>
-    <p>Logg inn med ditt prefiks for å se hint og verifiseringsscript. Infrastrukturen inneholder <strong>8 sikkerhetsmessige svakheter</strong> som skal identifiseres og utbedres.</p>
+    <p>Logg inn med ditt prefiks. Infrastrukturen inneholder 8 sikkerhetsmessige svakheter som skal identifiseres og utbedres.</p>
     <label class="flabel" for="f-prefix">Ditt prefiks (f.eks. on03)</label>
     <input class="finput" type="text" id="f-prefix" placeholder="on03" autocomplete="off" spellcheck="false">
     <div class="brow">
       <button class="p" id="btn-student">Logg inn som student</button>
-      <button id="btn-goto-teacher">Faglærer</button>
+      <button id="btn-goto-teacher">Faglerer</button>
     </div>
     <div class="err" id="err-login"></div>
   </div>
 </div>
-
 <div id="v-tlg" class="view">
   <div class="box">
-    <h2>Faglærer-tilgang</h2>
-    <p>Viser hint-bruk og aktivitetslogg for alle studenter.</p>
+    <h2>Faglaerer-tilgang</h2>
+    <p>Gir tilgang til hint-oversikt og aktivitetslogg.</p>
     <label class="flabel" for="f-pw">Passord</label>
-    <input class="finput" type="password" id="f-pw" placeholder="••••••••">
+    <input class="finput" type="password" id="f-pw" placeholder="********">
     <div class="brow">
       <button class="p" id="btn-teacher">Logg inn</button>
       <button id="btn-back">Tilbake</button>
@@ -135,13 +103,9 @@ pre { background: var(--code); padding: 14px; font-size: 12px; font-family: 'Cou
     <div class="err" id="err-teacher"></div>
   </div>
 </div>
-
 <div id="v-student" class="view">
   <div class="ph">
-    <div>
-      <h2>Hint-oversikt</h2>
-      <small id="s-sub"></small>
-    </div>
+    <div><h2>Hint-oversikt</h2><small id="s-sub"></small></div>
     <button id="btn-logout-s">Logg ut</button>
   </div>
   <div class="prog"><div class="prog-f" id="prog" style="width:0"></div></div>
@@ -149,16 +113,15 @@ pre { background: var(--code); padding: 14px; font-size: 12px; font-family: 'Cou
   <div id="hlist"></div>
   <p class="foot" id="s-foot"></p>
 </div>
-
 <div id="v-teacher" class="view">
   <div class="ph">
-    <h2>Faglærer-oversikt</h2>
+    <h2>Faglaerer-oversikt</h2>
     <div class="brow">
       <button id="btn-refresh">Oppdater</button>
       <button id="btn-logout-t">Logg ut</button>
     </div>
   </div>
-  <div class="stats" id="t-stats"><div class="stat"><div class="slbl">Laster...</div></div></div>
+  <div class="stats" id="t-stats"><div class="stat"><div class="slbl2">Laster...</div></div></div>
   <div class="tabs">
     <button class="tab on" id="tab-mx">Hint-matrise</button>
     <button class="tab" id="tab-lg">Aktivitetslogg</button>
@@ -167,334 +130,94 @@ pre { background: var(--code); padding: 14px; font-size: 12px; font-family: 'Cou
   <div id="t-lg" style="display:none"><p class="empty">Henter data...</p></div>
   <p class="foot" id="t-foot"></p>
 </div>
-
 </main>
 <script>
 var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxtdNHtGzektgDIoiVmnrf96W0_Z61jVKMdvwtcpkis1NXLA6BvhPKjof0yWZG4wvbsQ/exec';
 var TPW = 'infraitsec2024';
-
-var HINTS = [
-  {
-    id: 1,
-    cat: 'Nettverkssikkerhet',
-    title: 'Tilgangskontroll på administrasjonsnettet',
-    explain: 'Undersøk NSG-reglene på <strong>management-subnettet</strong> i hub resource group. Se spesielt på inngående regler og hvilke kilder som har tilgang til administrasjonstjenester. Er tilgangen begrenset til nødvendige IP-adresser, eller er den bredere enn den burde være?\n\nNavigasjon: Azure Portal → NSG → Inbound security rules',
-    script: `PREFIX="<ditt-prefiks>"
-RG_HUB="\${PREFIX}-rg-infraitsec-hub"
-NSG="\${PREFIX}-nsg-management"
-
-echo "--- Sjekker NSG-regler på management-subnet ---"
-RISKY=$(az network nsg rule list \\
-  --resource-group $RG_HUB \\
-  --nsg-name $NSG \\
-  --query "[?sourceAddressPrefix=='*' || sourceAddressPrefix=='0.0.0.0/0'].{Navn:name, Port:destinationPortRange, Kilde:sourceAddressPrefix}" \\
-  --output tsv)
-
-if [ -z "$RISKY" ]; then
-  echo "OK:   Ingen NSG-regler er aapne mot 0.0.0.0/0"
-else
-  echo "FUNN: Følgende regler er aapne mot internett:"
-  echo "$RISKY"
-  echo ""
-  echo "Utbedring: Endre SourceAddressPrefix til et spesifikt"
-  echo "IP-adresserom istedenfor '*' eller '0.0.0.0/0'"
-fi`
-  },
-  {
-    id: 2,
-    cat: 'Nettverkssikkerhet',
-    title: 'Eksponering av administrasjonsserver',
-    explain: 'Undersøk <strong>jumpbox-VM-en</strong> i hub resource group. En administrasjonsserver bør ikke være direkte tilgjengelig fra internett — tilgang bør gå via VPN, Bastion eller en lignende sikker kanal. Sjekk nettverkskonfigurasjonen på VM-en.\n\nNavigasjon: Azure Portal → VM → Networking → NIC → IP configurations',
-    script: `PREFIX="<ditt-prefiks>"
-RG_HUB="\${PREFIX}-rg-infraitsec-hub"
-VM="\${PREFIX}-vm-jumpbox"
-
-echo "--- Sjekker public IP på jumpbox ---"
-PUBLIC_IP=$(az vm list-ip-addresses \\
-  --resource-group $RG_HUB \\
-  --name $VM \\
-  --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" \\
-  --output tsv)
-
-if [ -z "$PUBLIC_IP" ] || [ "$PUBLIC_IP" = "null" ]; then
-  echo "OK:   Jumpbox har ingen direkte public IP-adresse"
-else
-  echo "FUNN: Jumpbox er eksponert mot internett med public IP: $PUBLIC_IP"
-  echo ""
-  echo "Utbedring: Fjern public IP fra NIC-en på jumpbox-VM-en"
-  echo "           og bruk VPN Gateway eller Azure Bastion for tilgang"
-fi`
-  },
-  {
-    id: 3,
-    cat: 'Nettverkssikkerhet',
-    title: 'Trafikkontroll mellom nettverkssegmenter',
-    explain: 'Undersøk om det finnes mekanismer som kontrollerer trafikk mellom frontend-spoke og backend-spoke. I en hub-spoke-topologi bør trafikk mellom spoke-er tvinges gjennom en sentral kontrollpunkt i hub-en via en <strong>User Defined Route (UDR)</strong>. Uten dette kan frontend-applikasjonen nå backend-ressurser direkte.\n\nNavigasjon: Azure Portal → Subnet → Route table',
-    script: `PREFIX="<ditt-prefiks>"
-RG_BACKEND="\${PREFIX}-rg-infraitsec-backend"
-VNET="\${PREFIX}-vnet-backend"
-SUBNET="\${PREFIX}-snet-data"
-
-echo "--- Sjekker UDR på backend data-subnet ---"
-ROUTE_TABLE=$(az network vnet subnet show \\
-  --resource-group $RG_BACKEND \\
-  --vnet-name $VNET \\
-  --name $SUBNET \\
-  --query "routeTable.id" \\
-  --output tsv)
-
-if [ -z "$ROUTE_TABLE" ] || [ "$ROUTE_TABLE" = "null" ]; then
-  echo "FUNN: Ingen UDR er tilknyttet backend-subnettet"
-  echo "      Trafikk fra frontend kan naå backend direkte"
-  echo ""
-  echo "Utbedring: Opprett en Route Table med en default-rute (0.0.0.0/0)"
-  echo "           som peker mot en NVA eller Azure Firewall i hub-en"
-else
-  echo "OK:   UDR er tilknyttet backend-subnettet: $ROUTE_TABLE"
-fi`
-  },
-  {
-    id: 4,
-    cat: 'Identitet og tilgang',
-    title: 'Autentisering på kundeportalen',
-    explain: 'Undersøk <strong>App Service</strong> i frontend resource group. En kundeportal bør kreve at brukere autentiserer seg før de får tilgang til innhold. Sjekk om det er konfigurert noen autentiseringsmekanisme på App Service-en.\n\nNavigasjon: Azure Portal → App Service → Authentication',
-    script: `PREFIX="<ditt-prefiks>"
-RG_FRONTEND="\${PREFIX}-rg-infraitsec-frontend"
-APP="\${PREFIX}-app-infraitsec"
-
-echo "--- Sjekker autentisering på App Service ---"
-AUTH=$(az webapp auth show \\
-  --resource-group $RG_FRONTEND \\
-  --name $APP \\
-  --query "enabled" \\
-  --output tsv)
-
-if [ "$AUTH" = "true" ]; then
-  echo "OK:   Entra ID-autentisering er aktivert paa App Service"
-else
-  echo "FUNN: Ingen autentisering er konfigurert paa App Service"
-  echo "      Kundeportalen er tilgjengelig for alle uten innlogging"
-  echo ""
-  echo "Utbedring: App Service → Authentication → Add identity provider"
-  echo "           Velg Microsoft og konfigurer Entra ID-autentisering"
-fi`
-  },
-  {
-    id: 5,
-    cat: 'Identitet og tilgang',
-    title: 'Tilgangsstyring for hemmelighetslageret',
-    explain: 'Undersøk <strong>Key Vault</strong> i backend resource group. Key Vault inneholder sensitive hemmeligheter som databasepassord og API-nøkler. Sjekk hvem som har tilgang til å lese hemmelighetene — bør alle brukere i organisasjonen ha denne tilgangen?\n\nNavigasjon: Azure Portal → Key Vault → Access policies',
-    script: `PREFIX="<ditt-prefiks>"
-RG_BACKEND="\${PREFIX}-rg-infraitsec-backend"
-KV="\${PREFIX}-kv-infraitsec"
-
-echo "--- Sjekker Key Vault access policies ---"
-echo "Alle access policies paa $KV:"
-az keyvault show \\
-  --name $KV \\
-  --resource-group $RG_BACKEND \\
-  --query "properties.accessPolicies[].{Principal:objectId, Secrets:permissions.secrets}" \\
-  --output table
-
-BROAD=$(az keyvault show \\
-  --name $KV \\
-  --resource-group $RG_BACKEND \\
-  --query "length(properties.accessPolicies[?contains(permissions.secrets, 'get') && contains(permissions.secrets, 'list')])" \\
-  --output tsv)
-
-echo ""
-if [ "$BROAD" -gt "1" ]; then
-  echo "FUNN: $BROAD principals har Get+List tilgang til hemmeligheter"
-  echo "      Vurder om alle disse faktisk trenger denne tilgangen"
-  echo ""
-  echo "Utbedring: Fjern unødvendige access policies og begrens"
-  echo "           tilgang til kun tjenester som faktisk trenger det"
-else
-  echo "OK:   Kun én principal har tilgang til hemmeligheter"
-fi`
-  },
-  {
-    id: 6,
-    cat: 'Identitet og tilgang',
-    title: 'Autentiseringsmetode for lagringstjenesten',
-    explain: 'Undersøk <strong>Storage Account</strong> i backend resource group. Azure Storage støtter to autentiseringsmetoder: kontonøkler (delte nøkler med full tilgang) og Managed Identity (identitetsbasert tilgang med rollestyring). Sjekk hvilken metode som er aktivert og hvilken som bør brukes.\n\nNavigasjon: Azure Portal → Storage Account → Configuration',
-    script: `PREFIX="<ditt-prefiks>"
-RG_BACKEND="\${PREFIX}-rg-infraitsec-backend"
-STORAGE="\${PREFIX}stginfraisec"
-
-echo "--- Sjekker autentiseringsmetode paa Storage Account ---"
-KEY_ACCESS=$(az storage account show \\
-  --name $STORAGE \\
-  --resource-group $RG_BACKEND \\
-  --query "allowSharedKeyAccess" \\
-  --output tsv)
-
-if [ "$KEY_ACCESS" = "false" ]; then
-  echo "OK:   Shared key access er deaktivert"
-  echo "      Storage Account krever Managed Identity eller Entra ID"
-else
-  echo "FUNN: Shared key access er aktivert paa $STORAGE"
-  echo "      Kontonøkler gir full tilgang uten rollestyring"
-  echo ""
-  echo "Utbedring: Storage Account → Configuration"
-  echo "           Sett 'Allow storage account key access' til Disabled"
-fi`
-  },
-  {
-    id: 7,
-    cat: 'Ressurskonfigurasjon',
-    title: 'Offentlig tilgang til interne dokumenter',
-    explain: 'Undersøk <strong>Blob Storage</strong> i backend resource group. Sjekk tilgangsinnstillingene på containeren "interne-dokumenter". Kan hvem som helst med URL-en laste ned filene? Prøv å åpne en av blob-URL-ene direkte i nettleseren uten å autentisere deg.\n\nNavigasjon: Azure Portal → Storage Account → Containers → interne-dokumenter',
-    script: `PREFIX="<ditt-prefiks>"
-RG_BACKEND="\${PREFIX}-rg-infraitsec-backend"
-STORAGE="\${PREFIX}stginfraisec"
-CONTAINER="interne-dokumenter"
-
-echo "--- Sjekker public access paa blob container ---"
-PUBLIC_ACCESS=$(az storage container show \\
-  --name $CONTAINER \\
-  --account-name $STORAGE \\
-  --auth-mode login \\
-  --query "properties.publicAccess" \\
-  --output tsv 2>/dev/null)
-
-ACCOUNT_PUBLIC=$(az storage account show \\
-  --name $STORAGE \\
-  --resource-group $RG_BACKEND \\
-  --query "allowBlobPublicAccess" \\
-  --output tsv)
-
-if [ "$ACCOUNT_PUBLIC" = "false" ]; then
-  echo "OK:   Public blob access er deaktivert paa Storage Account-nivå"
-elif [ -z "$PUBLIC_ACCESS" ] || [ "$PUBLIC_ACCESS" = "None" ] || [ "$PUBLIC_ACCESS" = "null" ]; then
-  echo "OK:   Containeren har ingen public access konfigurert"
-else
-  echo "FUNN: Containeren '$CONTAINER' har public access: $PUBLIC_ACCESS"
-  echo "      Interne dokumenter er tilgjengelige for alle via URL"
-  echo ""
-  echo "Test: https://\${STORAGE}.blob.core.windows.net/\${CONTAINER}/ansattliste-2024.txt"
-  echo ""
-  echo "Utbedring: Storage Account → Configuration"
-  echo "           Sett 'Allow Blob anonymous access' til Disabled"
-fi`
-  },
-  {
-    id: 8,
-    cat: 'Ressurskonfigurasjon',
-    title: 'Nettverkstilgang til databaseserver',
-    explain: 'Undersøk <strong>Azure SQL Server</strong> i backend resource group. En databaseserver bør ha strengt begrensede nettverksregler som kun tillater tilgang fra kjente og nødvendige kilder. Sjekk brannmurreglene på SQL-serveren.\n\nNavigasjon: Azure Portal → SQL Server → Networking → Firewall rules',
-    script: `PREFIX="<ditt-prefiks>"
-RG_BACKEND="\${PREFIX}-rg-infraitsec-backend"
-SQL="\${PREFIX}-sql-infraitsec"
-
-echo "--- Sjekker SQL Server brannmurregler ---"
-az sql server firewall-rule list \\
-  --resource-group $RG_BACKEND \\
-  --server $SQL \\
-  --query "[].{Navn:name, Fra:startIpAddress, Til:endIpAddress}" \\
-  --output table
-
-OPEN_RULE=$(az sql server firewall-rule list \\
-  --resource-group $RG_BACKEND \\
-  --server $SQL \\
-  --query "[?endIpAddress=='255.255.255.255'].name" \\
-  --output tsv)
-
-ALLOW_ALL_AZURE=$(az sql server show \\
-  --resource-group $RG_BACKEND \\
-  --name $SQL \\
-  --query "publicNetworkAccess" \\
-  --output tsv)
-
-echo ""
-if [ -n "$OPEN_RULE" ]; then
-  echo "FUNN: Brannmurregel '$OPEN_RULE' tillater alle IP-adresser (0.0.0.0-255.255.255.255)"
-  echo ""
-  echo "Utbedring: SQL Server → Networking → Firewall rules"
-  echo "           Slett regelen som tillater 0.0.0.0-255.255.255.255"
-  echo "           og erstatt med spesifikke IP-adresser eller"
-  echo "           bruk Private Endpoint for nettverksisolasjon"
-else
-  echo "OK:   Ingen brannmurregel tillater alle IP-adresser"
-fi`
-  }
-];
-
+var HINTS = [{"id": 1, "cat": "Nettverkssikkerhet", "title": "Tilgangskontroll paa administrasjonsnettet", "explain": "Undersok NSG-reglene paa management-subnettet i hub resource group. Se spesielt paa inngaaende regler og hvilke kilder som har tilgang. Er tilgangen begrenset til nodvendige IP-adresser, eller er den bredere enn den burde vaere?\n\nNavigasjon: Azure Portal - NSG - Inbound security rules", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_HUB=\"${PREFIX}-rg-infraitsec-hub\"\nNSG=\"${PREFIX}-nsg-management\"\n\necho \"--- Sjekker NSG-regler paa management-subnet ---\"\nRISKY=$(az network nsg rule list \\\n  --resource-group $RG_HUB \\\n  --nsg-name $NSG \\\n  --query \"[?sourceAddressPrefix=='*' || sourceAddressPrefix=='0.0.0.0/0'].{Navn:name, Port:destinationPortRange}\" \\\n  --output tsv)\n\nif [ -z \"$RISKY\" ]; then\n  echo \"OK:   Ingen NSG-regler er aapne mot 0.0.0.0/0\"\nelse\n  echo \"FUNN: Foelgende regler er aapne mot internett:\"\n  echo \"$RISKY\"\n  echo \"\"\n  echo \"Utbedring: Endre SourceAddressPrefix til spesifikt\"\n  echo \"           IP-adresserom istedenfor * eller 0.0.0.0/0\"\nfi"}, {"id": 2, "cat": "Nettverkssikkerhet", "title": "Eksponering av administrasjonsserver", "explain": "Undersok jumpbox-VM-en i hub resource group. En administrasjonsserver bor ikke vaere direkte tilgjengelig fra internett. Tilgang bor gaa via VPN, Bastion eller lignende sikker kanal. Sjekk nettverkskonfigurasjonen paa VM-en.\n\nNavigasjon: Azure Portal - VM - Networking - NIC - IP configurations", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_HUB=\"${PREFIX}-rg-infraitsec-hub\"\nVM=\"${PREFIX}-vm-jumpbox\"\n\necho \"--- Sjekker public IP paa jumpbox ---\"\nPUBLIC_IP=$(az vm list-ip-addresses \\\n  --resource-group $RG_HUB \\\n  --name $VM \\\n  --query \"[0].virtualMachine.network.publicIpAddresses[0].ipAddress\" \\\n  --output tsv)\n\nif [ -z \"$PUBLIC_IP\" ] || [ \"$PUBLIC_IP\" = \"null\" ]; then\n  echo \"OK:   Jumpbox har ingen direkte public IP-adresse\"\nelse\n  echo \"FUNN: Jumpbox er eksponert mot internett: $PUBLIC_IP\"\n  echo \"\"\n  echo \"Utbedring: Fjern public IP fra NIC-en paa jumpbox-VM-en\"\nfi"}, {"id": 3, "cat": "Nettverkssikkerhet", "title": "Trafikkontroll mellom nettverkssegmenter", "explain": "Undersok om det finnes mekanismer som kontrollerer trafikk mellom frontend-spoke og backend-spoke. I en hub-spoke-topologi bor trafikk mellom spoke-er tvinges gjennom hub-en via en User Defined Route (UDR). Uten dette kan frontend-applikasjonen naa backend-ressurser direkte.\n\nNavigasjon: Azure Portal - Subnet - Route table", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nVNET=\"${PREFIX}-vnet-backend\"\nSUBNET=\"${PREFIX}-snet-data\"\n\necho \"--- Sjekker UDR paa backend data-subnet ---\"\nROUTE_TABLE=$(az network vnet subnet show \\\n  --resource-group $RG_BACKEND \\\n  --vnet-name $VNET \\\n  --name $SUBNET \\\n  --query \"routeTable.id\" \\\n  --output tsv)\n\nif [ -z \"$ROUTE_TABLE\" ] || [ \"$ROUTE_TABLE\" = \"null\" ]; then\n  echo \"FUNN: Ingen UDR er tilknyttet backend-subnettet\"\n  echo \"      Trafikk fra frontend kan naa backend direkte\"\n  echo \"\"\n  echo \"Utbedring: Opprett Route Table med default-rute (0.0.0.0/0)\"\n  echo \"           som peker mot NVA eller Azure Firewall i hub-en\"\nelse\n  echo \"OK:   UDR er tilknyttet backend-subnettet\"\nfi"}, {"id": 4, "cat": "Identitet og tilgang", "title": "Autentisering paa kundeportalen", "explain": "Undersok App Service i frontend resource group. En kundeportal bor kreve at brukere autentiserer seg for de faar tilgang til innhold. Sjekk om det er konfigurert noen autentiseringsmekanisme paa App Service-en.\n\nNavigasjon: Azure Portal - App Service - Authentication", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_FRONTEND=\"${PREFIX}-rg-infraitsec-frontend\"\nAPP=\"${PREFIX}-app-infraitsec\"\n\necho \"--- Sjekker autentisering paa App Service ---\"\nAUTH=$(az webapp auth show \\\n  --resource-group $RG_FRONTEND \\\n  --name $APP \\\n  --query \"enabled\" \\\n  --output tsv)\n\nif [ \"$AUTH\" = \"true\" ]; then\n  echo \"OK:   Entra ID-autentisering er aktivert paa App Service\"\nelse\n  echo \"FUNN: Ingen autentisering er konfigurert paa App Service\"\n  echo \"      Kundeportalen er tilgjengelig for alle uten innlogging\"\n  echo \"\"\n  echo \"Utbedring: App Service - Authentication - Add identity provider\"\n  echo \"           Velg Microsoft og konfigurer Entra ID-autentisering\"\nfi"}, {"id": 5, "cat": "Identitet og tilgang", "title": "Tilgangsstyring for hemmelighetslageret", "explain": "Undersok Key Vault i backend resource group. Key Vault inneholder sensitive hemmeligheter som databasepassord og API-nokler. Sjekk hvem som har tilgang til aa lese hemmelighetene.\n\nNavigasjon: Azure Portal - Key Vault - Access policies", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nKV=\"${PREFIX}-kv-infraitsec\"\n\necho \"--- Sjekker Key Vault access policies ---\"\naz keyvault show \\\n  --name $KV \\\n  --resource-group $RG_BACKEND \\\n  --query \"properties.accessPolicies[].{Principal:objectId, Secrets:permissions.secrets}\" \\\n  --output table\n\nBROAD=$(az keyvault show \\\n  --name $KV \\\n  --resource-group $RG_BACKEND \\\n  --query \"length(properties.accessPolicies[?contains(permissions.secrets, 'get') && contains(permissions.secrets, 'list')])\" \\\n  --output tsv)\n\necho \"\"\nif [ \"$BROAD\" -gt \"1\" ]; then\n  echo \"FUNN: $BROAD principals har Get+List tilgang til hemmeligheter\"\n  echo \"\"\n  echo \"Utbedring: Fjern unodvendige access policies\"\nelse\n  echo \"OK:   Kun nodvendige principals har tilgang til hemmeligheter\"\nfi"}, {"id": 6, "cat": "Identitet og tilgang", "title": "Autentiseringsmetode for lagringstjenesten", "explain": "Undersok Storage Account i backend resource group. Azure Storage stotter to autentiseringsmetoder: kontononokler (full tilgang) og Managed Identity (rollestyring). Sjekk hvilken metode som er aktivert.\n\nNavigasjon: Azure Portal - Storage Account - Configuration", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSTORAGE=\"${PREFIX}stginfraisec\"\n\necho \"--- Sjekker autentiseringsmetode paa Storage Account ---\"\nKEY_ACCESS=$(az storage account show \\\n  --name $STORAGE \\\n  --resource-group $RG_BACKEND \\\n  --query \"allowSharedKeyAccess\" \\\n  --output tsv)\n\nif [ \"$KEY_ACCESS\" = \"false\" ]; then\n  echo \"OK:   Shared key access er deaktivert\"\nelse\n  echo \"FUNN: Shared key access er aktivert paa $STORAGE\"\n  echo \"      Kontonokler gir full tilgang uten rollestyring\"\n  echo \"\"\n  echo \"Utbedring: Storage Account - Configuration\"\n  echo \"           Sett Allow storage account key access til Disabled\"\nfi"}, {"id": 7, "cat": "Ressurskonfigurasjon", "title": "Offentlig tilgang til interne dokumenter", "explain": "Undersok Blob Storage i backend resource group. Sjekk tilgangsinnstillingene paa containeren interne-dokumenter. Kan hvem som helst med URL-en laste ned filene? Prover aa aapne en blob-URL direkte i nettleseren uten aa autentisere deg.\n\nNavigasjon: Azure Portal - Storage Account - Containers - interne-dokumenter", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSTORAGE=\"${PREFIX}stginfraisec\"\n\necho \"--- Sjekker public access paa blob container ---\"\nACCOUNT_PUBLIC=$(az storage account show \\\n  --name $STORAGE \\\n  --resource-group $RG_BACKEND \\\n  --query \"allowBlobPublicAccess\" \\\n  --output tsv)\n\nif [ \"$ACCOUNT_PUBLIC\" = \"false\" ]; then\n  echo \"OK:   Public blob access er deaktivert\"\nelse\n  echo \"FUNN: Public blob access er aktivert paa $STORAGE\"\n  echo \"      Interne dokumenter er tilgjengelige via URL\"\n  echo \"\"\n  echo \"Utbedring: Storage Account - Configuration\"\n  echo \"           Sett Allow Blob anonymous access til Disabled\"\nfi"}, {"id": 8, "cat": "Ressurskonfigurasjon", "title": "Nettverkstilgang til databaseserver", "explain": "Undersok Azure SQL Server i backend resource group. En databaseserver bor ha strengt begrensede nettverksregler som kun tillater tilgang fra kjente og nodvendige kilder. Sjekk brannmurreglene.\n\nNavigasjon: Azure Portal - SQL Server - Networking - Firewall rules", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSQL=\"${PREFIX}-sql-infraitsec\"\n\necho \"--- Sjekker SQL Server brannmurregler ---\"\naz sql server firewall-rule list \\\n  --resource-group $RG_BACKEND \\\n  --server $SQL \\\n  --query \"[].{Navn:name, Fra:startIpAddress, Til:endIpAddress}\" \\\n  --output table\n\nOPEN_RULE=$(az sql server firewall-rule list \\\n  --resource-group $RG_BACKEND \\\n  --server $SQL \\\n  --query \"[?endIpAddress=='255.255.255.255'].name\" \\\n  --output tsv)\n\necho \"\"\nif [ -n \"$OPEN_RULE\" ]; then\n  echo \"FUNN: Brannmurregel tillater alle IP-adresser (0.0.0.0-255.255.255.255)\"\n  echo \"\"\n  echo \"Utbedring: SQL Server - Networking - Firewall rules\"\n  echo \"           Slett regelen som tillater 0.0.0.0-255.255.255.255\"\nelse\n  echo \"OK:   Ingen brannmurregel tillater alle IP-adresser\"\nfi"}];
 var CATS = [];
 HINTS.forEach(function(h) { if (CATS.indexOf(h.cat) === -1) CATS.push(h.cat); });
 var currentUser = null;
 var useSheets = false;
 
-function apiUrl(params) {
-  var qs = Object.keys(params).map(function(k) {
-    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+function safeGet(k) {
+  try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch(e) { return null; }
+}
+function safeSet(k, v) {
+  try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
+}
+
+function apiUrl(p) {
+  return APPS_SCRIPT_URL + '?' + Object.keys(p).map(function(k) {
+    return encodeURIComponent(k) + '=' + encodeURIComponent(p[k]);
   }).join('&');
-  return APPS_SCRIPT_URL + '?' + qs;
 }
 
-async function fetchUsage() {
-  if (!useSheets) return localGet('iits_usage') || {};
-  try { var r = await fetch(apiUrl({ action: 'getUsage' })); return await r.json() || {}; }
-  catch(e) { return localGet('iits_usage') || {}; }
+function fetchUsage(cb) {
+  if (!useSheets) { cb(safeGet('iits_usage') || {}); return; }
+  fetch(apiUrl({action:'getUsage'}))
+    .then(function(r){return r.json();})
+    .then(function(d){cb(d||{});})
+    .catch(function(){cb(safeGet('iits_usage')||{});});
 }
 
-async function fetchLog() {
-  if (!useSheets) return localGet('iits_log') || [];
-  try { var r = await fetch(apiUrl({ action: 'getLog' })); var d = await r.json(); return Array.isArray(d) ? d : []; }
-  catch(e) { return localGet('iits_log') || []; }
+function fetchLog(cb) {
+  if (!useSheets) { cb(safeGet('iits_log') || []); return; }
+  fetch(apiUrl({action:'getLog'}))
+    .then(function(r){return r.json();})
+    .then(function(d){cb(Array.isArray(d)?d:[]);})
+    .catch(function(){cb(safeGet('iits_log')||[]);});
 }
 
-async function saveUsed(user, hintId, level) {
-  var u = localGet('iits_usage') || {};
+function saveUsed(user, hintId, level, cb) {
+  var u = safeGet('iits_usage') || {};
   if (!u[user]) u[user] = {};
   if (!u[user][hintId]) u[user][hintId] = {};
   u[user][hintId][level] = true;
-  localSet('iits_usage', u);
-  var l = localGet('iits_log') || [];
-  l.push({ user: user, hintId: hintId, level: level, ts: new Date().toISOString() });
-  localSet('iits_log', l);
+  safeSet('iits_usage', u);
+  var l = safeGet('iits_log') || [];
+  l.push({user:user, hintId:hintId, level:level, ts:new Date().toISOString()});
+  safeSet('iits_log', l);
   if (useSheets) {
-    try { await fetch(apiUrl({ action: 'markUsed', user: user, hintId: hintId, level: level })); }
-    catch(e) {}
-  }
+    fetch(apiUrl({action:'markUsed',user:user,hintId:hintId,level:level}))
+      .then(function(){if(cb)cb();}).catch(function(){if(cb)cb();});
+  } else { if(cb)cb(); }
 }
 
-function localGet(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch(e) { return null; } }
-function localSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
-
 function showV(id) {
-  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  var views = document.querySelectorAll('.view');
+  for (var i=0; i<views.length; i++) views[i].classList.remove('active');
   document.getElementById(id).classList.add('active');
 }
 
-function updateProgressBar() {
-  var u = localGet('iits_usage') || {};
+function updateProg() {
+  var u = safeGet('iits_usage') || {};
   var c = Object.keys(u[currentUser] || {}).length;
-  var pct = Math.round(c / HINTS.length * 100);
-  document.getElementById('prog').style.width = pct + '%';
-  document.getElementById('prog-lbl').textContent = c + ' av ' + HINTS.length + ' hint åpnet';
+  document.getElementById('prog').style.width = Math.round(c/HINTS.length*100) + '%';
+  document.getElementById('prog-lbl').textContent = c + ' av ' + HINTS.length + ' hint aapnet';
 }
 
 function doLoginStudent() {
   var val = document.getElementById('f-prefix').value;
-  var prefix = (val || '').trim().toLowerCase();
-  var errEl = document.getElementById('err-login');
-  if (!prefix || prefix.length < 2) { errEl.textContent = 'Skriv inn et gyldig prefiks.'; return; }
-  errEl.textContent = '';
+  var prefix = (val||'').trim().toLowerCase();
+  if (!prefix || prefix.length < 2) {
+    document.getElementById('err-login').textContent = 'Skriv inn et gyldig prefiks.';
+    return;
+  }
+  document.getElementById('err-login').textContent = '';
   currentUser = prefix;
   document.getElementById('hdr-user').textContent = prefix;
-  document.getElementById('s-sub').textContent = 'Prefiks: ' + prefix + ' — infrastrukturen inneholder 8 svakheter';
+  document.getElementById('s-sub').textContent = 'Prefiks: ' + prefix + ' — 8 svakheter aa finne';
   document.getElementById('s-foot').textContent = useSheets ? 'Hint-bruk lagres sentralt.' : 'Hint-bruk lagres lokalt i denne nettleseren.';
   showV('v-student');
   renderStudent();
 }
 
 function doLoginTeacher() {
-  var pw = (document.getElementById('f-pw').value || '');
-  var errEl = document.getElementById('err-teacher');
-  if (pw !== TPW) { errEl.textContent = 'Feil passord.'; return; }
-  errEl.textContent = '';
-  document.getElementById('hdr-user').textContent = 'faglærer';
+  var pw = document.getElementById('f-pw').value || '';
+  if (pw !== TPW) { document.getElementById('err-teacher').textContent = 'Feil passord.'; return; }
+  document.getElementById('err-teacher').textContent = '';
+  document.getElementById('hdr-user').textContent = 'faglaerer';
   document.getElementById('t-foot').textContent = useSheets ? 'Data hentes fra Google Sheets.' : 'Data lagres per nettleser.';
   showV('v-teacher');
   renderTeacher();
@@ -508,113 +231,97 @@ function doLogout() {
   document.getElementById('err-login').textContent = '';
   document.getElementById('err-teacher').textContent = '';
   showV('v-login');
-  setTimeout(function() { document.getElementById('f-prefix').focus(); }, 50);
+  setTimeout(function(){ document.getElementById('f-prefix').focus(); }, 50);
 }
 
-window.addEventListener('DOMContentLoaded', function() {
-  useSheets = APPS_SCRIPT_URL !== '';
-  document.getElementById('btn-student').addEventListener('click', doLoginStudent);
-  document.getElementById('btn-goto-teacher').addEventListener('click', function() { showV('v-tlg'); });
-  document.getElementById('btn-teacher').addEventListener('click', doLoginTeacher);
-  document.getElementById('btn-back').addEventListener('click', function() { showV('v-login'); });
-  document.getElementById('btn-logout-s').addEventListener('click', doLogout);
-  document.getElementById('btn-logout-t').addEventListener('click', doLogout);
-  document.getElementById('btn-refresh').addEventListener('click', renderTeacher);
-  document.getElementById('tab-mx').addEventListener('click', function() { switchTab('t-mx', this); });
-  document.getElementById('tab-lg').addEventListener('click', function() { switchTab('t-lg', this); });
-  document.getElementById('f-prefix').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLoginStudent(); });
-  document.getElementById('f-pw').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLoginTeacher(); });
-});
+document.getElementById('btn-student').addEventListener('click', doLoginStudent);
+document.getElementById('btn-goto-teacher').addEventListener('click', function(){ showV('v-tlg'); });
+document.getElementById('btn-teacher').addEventListener('click', doLoginTeacher);
+document.getElementById('btn-back').addEventListener('click', function(){ showV('v-login'); });
+document.getElementById('btn-logout-s').addEventListener('click', doLogout);
+document.getElementById('btn-logout-t').addEventListener('click', doLogout);
+document.getElementById('btn-refresh').addEventListener('click', renderTeacher);
+document.getElementById('tab-mx').addEventListener('click', function(){ switchTab('t-mx',this); });
+document.getElementById('tab-lg').addEventListener('click', function(){ switchTab('t-lg',this); });
+document.getElementById('f-prefix').addEventListener('keydown', function(e){ if(e.key==='Enter') doLoginStudent(); });
+document.getElementById('f-pw').addEventListener('keydown', function(e){ if(e.key==='Enter') doLoginTeacher(); });
 
-async function renderStudent() {
+useSheets = APPS_SCRIPT_URL !== '';
+
+function renderStudent() {
   var el = document.getElementById('hlist');
   el.innerHTML = '<p class="empty">Laster...</p>';
-  var usage = await fetchUsage();
-  var myU = usage[currentUser] || {};
-  updateProgressBar();
-  el.innerHTML = '';
-
-  CATS.forEach(function(cat) {
-    var lbl = document.createElement('p');
-    lbl.className = 'clbl';
-    lbl.textContent = cat;
-    el.appendChild(lbl);
-
-    HINTS.filter(function(h) { return h.cat === cat; }).forEach(function(hint) {
-      var eu = !!(myU[hint.id] && myU[hint.id].explain);
-      var su = !!(myU[hint.id] && myU[hint.id].script);
-
-      var card = document.createElement('div');
-      card.className = 'hcard';
-
-      var hdr = document.createElement('div');
-      hdr.className = 'hhdr';
-      hdr.setAttribute('role', 'button');
-      hdr.setAttribute('tabindex', '0');
-      hdr.innerHTML =
-        '<span class="hnum">' + hint.id + '</span>' +
-        '<span class="htit' + (eu ? ' used' : '') + '">' + hint.title + '</span>' +
-        '<span class="badge ' + (eu ? 'bdone' : 'bnew') + '">' + (eu ? 'Åpnet' : 'Nytt') + '</span>';
-
-      var body = document.createElement('div');
-      body.className = 'hbody';
-
-      var expEl = document.createElement('div');
-      expEl.className = 'explain';
-      expEl.innerHTML = hint.explain.replace(/\n/g, '<br>');
-
-      var sep = document.createElement('hr');
-      sep.className = 'sep';
-
-      var scriptLbl = document.createElement('p');
-      scriptLbl.className = 'script-lbl';
-      scriptLbl.innerHTML = 'Verifiseringsscript <span>kjøres i Azure Cloud Shell etter utbedring</span>';
-
-      var sw = document.createElement('div');
-      if (su) {
-        buildScript(sw, hint);
-      } else {
-        var cbox = document.createElement('div');
-        cbox.className = 'cbox';
-        cbox.innerHTML =
-          '<p>Scriptet sjekker om du har utbedret svakheten korrekt og skriver ut <strong>OK</strong> eller <strong>FUNN</strong>. Åpner du det nå registreres dette som brukt hint.</p>' +
-          '<div class="brow"><button class="bwarn">Vis verifiseringsscript</button><button>Avbryt</button></div>';
-        cbox.querySelectorAll('button')[0].addEventListener('click', function() {
-          saveUsed(currentUser, hint.id, 'script').then(function() {
-            buildScript(sw, hint);
-            cbox.remove();
-            updateProgressBar();
+  fetchUsage(function(usage) {
+    var myU = usage[currentUser] || {};
+    updateProg();
+    el.innerHTML = '';
+    CATS.forEach(function(cat) {
+      var lbl = document.createElement('p');
+      lbl.className = 'clbl';
+      lbl.textContent = cat;
+      el.appendChild(lbl);
+      HINTS.filter(function(h){ return h.cat===cat; }).forEach(function(hint) {
+        var eu = !!(myU[hint.id] && myU[hint.id].explain);
+        var su = !!(myU[hint.id] && myU[hint.id].script);
+        var card = document.createElement('div');
+        card.className = 'hcard';
+        var hdr = document.createElement('div');
+        hdr.className = 'hhdr';
+        hdr.setAttribute('role','button');
+        hdr.setAttribute('tabindex','0');
+        hdr.innerHTML = '<span class="hnum">'+hint.id+'</span>' +
+          '<span class="htit'+(eu?' used':'')+'">'+hint.title+'</span>' +
+          '<span class="badge '+(eu?'bdone':'bnew')+'">'+(eu?'Aapnet':'Nytt')+'</span>';
+        var body = document.createElement('div');
+        body.className = 'hbody';
+        var expEl = document.createElement('div');
+        expEl.className = 'explain';
+        expEl.textContent = hint.explain;
+        var sep = document.createElement('hr');
+        sep.className = 'sep';
+        var slbl = document.createElement('p');
+        slbl.className = 'slbl';
+        slbl.textContent = 'Verifiseringsscript — kjores i Azure Cloud Shell etter utbedring:';
+        var sw = document.createElement('div');
+        if (su) {
+          buildScript(sw, hint);
+        } else {
+          var cbox = document.createElement('div');
+          cbox.className = 'cbox';
+          cbox.innerHTML = '<p>Scriptet sjekker om svakheten er utbedret korrekt og skriver ut OK eller FUNN. Aapner du det registreres dette som brukt hint.</p>' +
+            '<div class="brow"><button class="bwarn">Vis verifiseringsscript</button><button>Avbryt</button></div>';
+          cbox.querySelectorAll('button')[0].addEventListener('click', function() {
+            saveUsed(currentUser, hint.id, 'script', function() {
+              buildScript(sw, hint);
+              cbox.remove();
+              updateProg();
+            });
           });
-        });
-        cbox.querySelectorAll('button')[1].addEventListener('click', function() { cbox.remove(); });
-        sw.appendChild(cbox);
-      }
-
-      body.appendChild(expEl);
-      body.appendChild(sep);
-      body.appendChild(scriptLbl);
-      body.appendChild(sw);
-      card.appendChild(hdr);
-      card.appendChild(body);
-      el.appendChild(card);
-
-      function toggleBody() {
-        var open = body.style.display === 'block';
-        body.style.display = open ? 'none' : 'block';
-        if (!open && !eu) {
-          eu = true;
-          saveUsed(currentUser, hint.id, 'explain').then(function() {
-            hdr.querySelector('.badge').className = 'badge bdone';
-            hdr.querySelector('.badge').textContent = 'Åpnet';
-            hdr.querySelector('.htit').classList.add('used');
-            updateProgressBar();
-          });
+          cbox.querySelectorAll('button')[1].addEventListener('click', function(){ cbox.remove(); });
+          sw.appendChild(cbox);
         }
-      }
-
-      hdr.addEventListener('click', toggleBody);
-      hdr.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleBody(); }
+        body.appendChild(expEl);
+        body.appendChild(sep);
+        body.appendChild(slbl);
+        body.appendChild(sw);
+        card.appendChild(hdr);
+        card.appendChild(body);
+        el.appendChild(card);
+        function toggleBody() {
+          var open = body.style.display === 'block';
+          body.style.display = open ? 'none' : 'block';
+          if (!open && !eu) {
+            eu = true;
+            saveUsed(currentUser, hint.id, 'explain', function() {
+              hdr.querySelector('.badge').className = 'badge bdone';
+              hdr.querySelector('.badge').textContent = 'Aapnet';
+              hdr.querySelector('.htit').classList.add('used');
+              updateProg();
+            });
+          }
+        }
+        hdr.addEventListener('click', toggleBody);
+        hdr.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleBody();} });
       });
     });
   });
@@ -633,10 +340,21 @@ function buildScript(container, hint) {
   cpBtn.textContent = 'Kopier';
   cpBtn.addEventListener('click', function(e) {
     e.stopPropagation();
-    navigator.clipboard.writeText(hint.script).then(function() {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(hint.script).then(function() {
+        cpBtn.textContent = 'Kopiert!';
+        setTimeout(function(){ cpBtn.textContent = 'Kopier'; }, 1500);
+      }).catch(function(){ cpBtn.textContent = 'Feil'; });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = hint.script;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
       cpBtn.textContent = 'Kopiert!';
-      setTimeout(function() { cpBtn.textContent = 'Kopier'; }, 1500);
-    }).catch(function() { cpBtn.textContent = 'Feil'; });
+      setTimeout(function(){ cpBtn.textContent = 'Kopier'; }, 1500);
+    }
   });
   shdr.appendChild(lbl);
   shdr.appendChild(cpBtn);
@@ -647,68 +365,67 @@ function buildScript(container, hint) {
   container.appendChild(box);
 }
 
-async function renderTeacher() {
+function renderTeacher() {
   document.getElementById('t-mx').innerHTML = '<p class="empty">Henter data...</p>';
   document.getElementById('t-lg').innerHTML = '<p class="empty">Henter data...</p>';
-  var usage = await fetchUsage();
-  var log = await fetchLog();
-  var users = Object.keys(usage).sort();
-  var total = users.reduce(function(s, u) { return s + Object.keys(usage[u] || {}).length; }, 0);
-  var avg = users.length ? (total / users.length).toFixed(1) : '0';
-
-  document.getElementById('t-stats').innerHTML =
-    '<div class="stat"><div class="slbl">Studenter</div><div class="sval">' + users.length + '</div></div>' +
-    '<div class="stat"><div class="slbl">Hint åpnet</div><div class="sval">' + total + '</div></div>' +
-    '<div class="stat"><div class="slbl">Snitt</div><div class="sval">' + avg + '</div></div>';
-
-  var mx = document.getElementById('t-mx');
-  mx.innerHTML = '';
-  if (!users.length) { mx.innerHTML = '<p class="empty">Ingen hint brukt ennå.</p>'; }
-  else {
-    var tbl = document.createElement('div');
-    tbl.className = 'tbl';
-    var hdr = document.createElement('div');
-    hdr.className = 'trow th';
-    hdr.innerHTML = '<span>Prefiks</span><span>Åpnet</span>' +
-      HINTS.map(function(h) { return '<span style="text-align:center" title="' + h.title + '">' + h.id + '</span>'; }).join('');
-    tbl.appendChild(hdr);
-    users.forEach(function(u) {
-      var row = document.createElement('div');
-      row.className = 'trow';
-      var ud = usage[u] || {};
-      row.innerHTML = '<span><strong>' + u + '</strong></span><span>' + Object.keys(ud).length + ' / ' + HINTS.length + '</span>' +
-        HINTS.map(function(h) { return '<span><span class="dot ' + (ud[h.id] ? 'don' : 'doff') + '"></span></span>'; }).join('');
-      tbl.appendChild(row);
+  fetchUsage(function(usage) {
+    fetchLog(function(log) {
+      var users = Object.keys(usage).sort();
+      var total = users.reduce(function(s,u){ return s+Object.keys(usage[u]||{}).length; },0);
+      var avg = users.length ? (total/users.length).toFixed(1) : '0';
+      document.getElementById('t-stats').innerHTML =
+        '<div class="stat"><div class="slbl2">Studenter</div><div class="sval">'+users.length+'</div></div>' +
+        '<div class="stat"><div class="slbl2">Hint aapnet</div><div class="sval">'+total+'</div></div>' +
+        '<div class="stat"><div class="slbl2">Snitt</div><div class="sval">'+avg+'</div></div>';
+      var mx = document.getElementById('t-mx');
+      mx.innerHTML = '';
+      if (!users.length) { mx.innerHTML = '<p class="empty">Ingen hint brukt ennaa.</p>'; }
+      else {
+        var tbl = document.createElement('div');
+        tbl.className = 'tbl';
+        var hdr = document.createElement('div');
+        hdr.className = 'trow th';
+        hdr.innerHTML = '<span>Prefiks</span><span>Aapnet</span>' +
+          HINTS.map(function(h){ return '<span style="text-align:center" title="'+h.title+'">'+h.id+'</span>'; }).join('');
+        tbl.appendChild(hdr);
+        users.forEach(function(u) {
+          var row = document.createElement('div');
+          row.className = 'trow';
+          var ud = usage[u]||{};
+          row.innerHTML = '<span><strong>'+u+'</strong></span><span>'+Object.keys(ud).length+' / '+HINTS.length+'</span>' +
+            HINTS.map(function(h){ return '<span><span class="dot '+(ud[h.id]?'don':'doff')+'"></span></span>'; }).join('');
+          tbl.appendChild(row);
+        });
+        mx.appendChild(tbl);
+      }
+      var lg = document.getElementById('t-lg');
+      lg.innerHTML = '';
+      var entries = Array.isArray(log) ? log : [];
+      if (!entries.length) { lg.innerHTML = '<p class="empty">Ingen aktivitet ennaa.</p>'; }
+      else {
+        var tbl2 = document.createElement('div');
+        tbl2.className = 'tbl';
+        entries.slice().reverse().slice(0,50).forEach(function(e) {
+          var h = HINTS.filter(function(x){ return x.id===e.hintId; })[0];
+          var row = document.createElement('div');
+          row.className = 'lrow';
+          var ts = new Date(e.ts);
+          var t = ts.toLocaleDateString('no-NO')+' '+ts.toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'});
+          var type = e.level==='script' ? 'script' : 'forklaring';
+          row.innerHTML = '<span><strong>'+e.user+'</strong> aapnet '+type+' — hint '+e.hintId+': '+(h?h.title:'')+'</span><span class="ltime">'+t+'</span>';
+          tbl2.appendChild(row);
+        });
+        lg.appendChild(tbl2);
+      }
     });
-    mx.appendChild(tbl);
-  }
-
-  var lg = document.getElementById('t-lg');
-  lg.innerHTML = '';
-  var entries = Array.isArray(log) ? log : [];
-  if (!entries.length) { lg.innerHTML = '<p class="empty">Ingen aktivitet ennå.</p>'; }
-  else {
-    var tbl2 = document.createElement('div');
-    tbl2.className = 'tbl';
-    entries.slice().reverse().slice(0, 50).forEach(function(e) {
-      var h = HINTS.filter(function(x) { return x.id === e.hintId; })[0];
-      var row = document.createElement('div');
-      row.className = 'lrow';
-      var ts = new Date(e.ts);
-      var t = ts.toLocaleDateString('no-NO') + ' ' + ts.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
-      var type = e.level === 'script' ? 'script' : 'forklaring';
-      row.innerHTML = '<span><strong>' + e.user + '</strong> åpnet ' + type + ' — hint ' + e.hintId + ': ' + (h ? h.title : '') + '</span><span class="ltime">' + t + '</span>';
-      tbl2.appendChild(row);
-    });
-    lg.appendChild(tbl2);
-  }
+  });
 }
 
 function switchTab(id, btn) {
-  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('on'); });
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('on'); });
   btn.classList.add('on');
-  document.getElementById('t-mx').style.display = id === 't-mx' ? 'block' : 'none';
-  document.getElementById('t-lg').style.display = id === 't-lg' ? 'block' : 'none';
+  document.getElementById('t-mx').style.display = id==='t-mx' ? 'block' : 'none';
+  document.getElementById('t-lg').style.display = id==='t-lg' ? 'block' : 'none';
 }
 </script>
 </body>
