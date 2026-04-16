@@ -85,14 +85,14 @@ pre{background:var(--code);padding:14px;font-size:12px;font-family:"Courier New"
     <input class="finput" type="text" id="f-prefix" placeholder="on03" autocomplete="off" spellcheck="false">
     <div class="brow">
       <button class="p" id="btn-student">Logg inn som student</button>
-      <button id="btn-goto-teacher">Faglerer</button>
+      <button id="btn-goto-teacher">Faglærer</button>
     </div>
     <div class="err" id="err-login"></div>
   </div>
 </div>
 <div id="v-tlg" class="view">
   <div class="box">
-    <h2>Faglaerer-tilgang</h2>
+    <h2>Faglærer-tilgang</h2>
     <p>Gir tilgang til hint-oversikt og aktivitetslogg.</p>
     <label class="flabel" for="f-pw">Passord</label>
     <input class="finput" type="password" id="f-pw" placeholder="********">
@@ -115,7 +115,7 @@ pre{background:var(--code);padding:14px;font-size:12px;font-family:"Courier New"
 </div>
 <div id="v-teacher" class="view">
   <div class="ph">
-    <h2>Faglaerer-oversikt</h2>
+    <h2>Faglærer-oversikt</h2>
     <div class="brow">
       <button id="btn-refresh">Oppdater</button>
       <button id="btn-logout-t">Logg ut</button>
@@ -134,7 +134,293 @@ pre{background:var(--code);padding:14px;font-size:12px;font-family:"Courier New"
 <script>
 var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxtdNHtGzektgDIoiVmnrf96W0_Z61jVKMdvwtcpkis1NXLA6BvhPKjof0yWZG4wvbsQ/exec';
 var TPW = 'infraitsec2024';
-var HINTS = [{"id": 1, "cat": "Nettverkssikkerhet", "title": "Tilgangskontroll paa administrasjonsnettet", "explain": "Undersok NSG-reglene paa management-subnettet i hub resource group. Se spesielt paa inngaaende regler og hvilke kilder som har tilgang. Er tilgangen begrenset til nodvendige IP-adresser, eller er den bredere enn den burde vaere?\n\nNavigasjon: Azure Portal - NSG - Inbound security rules", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_HUB=\"${PREFIX}-rg-infraitsec-hub\"\nNSG=\"${PREFIX}-nsg-management\"\n\necho \"--- Sjekker NSG-regler paa management-subnet ---\"\nRISKY=$(az network nsg rule list \\\n  --resource-group $RG_HUB \\\n  --nsg-name $NSG \\\n  --query \"[?sourceAddressPrefix=='*' || sourceAddressPrefix=='0.0.0.0/0'].{Navn:name, Port:destinationPortRange}\" \\\n  --output tsv)\n\nif [ -z \"$RISKY\" ]; then\n  echo \"OK:   Ingen NSG-regler er aapne mot 0.0.0.0/0\"\nelse\n  echo \"FUNN: Foelgende regler er aapne mot internett:\"\n  echo \"$RISKY\"\n  echo \"\"\n  echo \"Utbedring: Endre SourceAddressPrefix til spesifikt\"\n  echo \"           IP-adresserom istedenfor * eller 0.0.0.0/0\"\nfi"}, {"id": 2, "cat": "Nettverkssikkerhet", "title": "Eksponering av administrasjonsserver", "explain": "Undersok jumpbox-VM-en i hub resource group. En administrasjonsserver bor ikke vaere direkte tilgjengelig fra internett. Tilgang bor gaa via VPN, Bastion eller lignende sikker kanal. Sjekk nettverkskonfigurasjonen paa VM-en.\n\nNavigasjon: Azure Portal - VM - Networking - NIC - IP configurations", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_HUB=\"${PREFIX}-rg-infraitsec-hub\"\nVM=\"${PREFIX}-vm-jumpbox\"\n\necho \"--- Sjekker public IP paa jumpbox ---\"\nPUBLIC_IP=$(az vm list-ip-addresses \\\n  --resource-group $RG_HUB \\\n  --name $VM \\\n  --query \"[0].virtualMachine.network.publicIpAddresses[0].ipAddress\" \\\n  --output tsv)\n\nif [ -z \"$PUBLIC_IP\" ] || [ \"$PUBLIC_IP\" = \"null\" ]; then\n  echo \"OK:   Jumpbox har ingen direkte public IP-adresse\"\nelse\n  echo \"FUNN: Jumpbox er eksponert mot internett: $PUBLIC_IP\"\n  echo \"\"\n  echo \"Utbedring: Fjern public IP fra NIC-en paa jumpbox-VM-en\"\nfi"}, {"id": 3, "cat": "Nettverkssikkerhet", "title": "Trafikkontroll mellom nettverkssegmenter", "explain": "Undersok om det finnes mekanismer som kontrollerer trafikk mellom frontend-spoke og backend-spoke. I en hub-spoke-topologi bor trafikk mellom spoke-er tvinges gjennom hub-en via en User Defined Route (UDR). Uten dette kan frontend-applikasjonen naa backend-ressurser direkte.\n\nNavigasjon: Azure Portal - Subnet - Route table", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nVNET=\"${PREFIX}-vnet-backend\"\nSUBNET=\"${PREFIX}-snet-data\"\n\necho \"--- Sjekker UDR paa backend data-subnet ---\"\nROUTE_TABLE=$(az network vnet subnet show \\\n  --resource-group $RG_BACKEND \\\n  --vnet-name $VNET \\\n  --name $SUBNET \\\n  --query \"routeTable.id\" \\\n  --output tsv)\n\nif [ -z \"$ROUTE_TABLE\" ] || [ \"$ROUTE_TABLE\" = \"null\" ]; then\n  echo \"FUNN: Ingen UDR er tilknyttet backend-subnettet\"\n  echo \"      Trafikk fra frontend kan naa backend direkte\"\n  echo \"\"\n  echo \"Utbedring: Opprett Route Table med default-rute (0.0.0.0/0)\"\n  echo \"           som peker mot NVA eller Azure Firewall i hub-en\"\nelse\n  echo \"OK:   UDR er tilknyttet backend-subnettet\"\nfi"}, {"id": 4, "cat": "Identitet og tilgang", "title": "Autentisering paa kundeportalen", "explain": "Undersok App Service i frontend resource group. En kundeportal bor kreve at brukere autentiserer seg for de faar tilgang til innhold. Sjekk om det er konfigurert noen autentiseringsmekanisme paa App Service-en.\n\nNavigasjon: Azure Portal - App Service - Authentication", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_FRONTEND=\"${PREFIX}-rg-infraitsec-frontend\"\nAPP=\"${PREFIX}-app-infraitsec\"\n\necho \"--- Sjekker autentisering paa App Service ---\"\nAUTH=$(az webapp auth show \\\n  --resource-group $RG_FRONTEND \\\n  --name $APP \\\n  --query \"enabled\" \\\n  --output tsv)\n\nif [ \"$AUTH\" = \"true\" ]; then\n  echo \"OK:   Entra ID-autentisering er aktivert paa App Service\"\nelse\n  echo \"FUNN: Ingen autentisering er konfigurert paa App Service\"\n  echo \"      Kundeportalen er tilgjengelig for alle uten innlogging\"\n  echo \"\"\n  echo \"Utbedring: App Service - Authentication - Add identity provider\"\n  echo \"           Velg Microsoft og konfigurer Entra ID-autentisering\"\nfi"}, {"id": 5, "cat": "Identitet og tilgang", "title": "Tilgangsstyring for hemmelighetslageret", "explain": "Undersok Key Vault i backend resource group. Key Vault inneholder sensitive hemmeligheter som databasepassord og API-nokler. Sjekk hvem som har tilgang til aa lese hemmelighetene.\n\nNavigasjon: Azure Portal - Key Vault - Access policies", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nKV=\"${PREFIX}-kv-infraitsec\"\n\necho \"--- Sjekker Key Vault access policies ---\"\naz keyvault show \\\n  --name $KV \\\n  --resource-group $RG_BACKEND \\\n  --query \"properties.accessPolicies[].{Principal:objectId, Secrets:permissions.secrets}\" \\\n  --output table\n\nBROAD=$(az keyvault show \\\n  --name $KV \\\n  --resource-group $RG_BACKEND \\\n  --query \"length(properties.accessPolicies[?contains(permissions.secrets, 'get') && contains(permissions.secrets, 'list')])\" \\\n  --output tsv)\n\necho \"\"\nif [ \"$BROAD\" -gt \"1\" ]; then\n  echo \"FUNN: $BROAD principals har Get+List tilgang til hemmeligheter\"\n  echo \"\"\n  echo \"Utbedring: Fjern unodvendige access policies\"\nelse\n  echo \"OK:   Kun nodvendige principals har tilgang til hemmeligheter\"\nfi"}, {"id": 6, "cat": "Identitet og tilgang", "title": "Autentiseringsmetode for lagringstjenesten", "explain": "Undersok Storage Account i backend resource group. Azure Storage stotter to autentiseringsmetoder: kontononokler (full tilgang) og Managed Identity (rollestyring). Sjekk hvilken metode som er aktivert.\n\nNavigasjon: Azure Portal - Storage Account - Configuration", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSTORAGE=\"${PREFIX}stginfraisec\"\n\necho \"--- Sjekker autentiseringsmetode paa Storage Account ---\"\nKEY_ACCESS=$(az storage account show \\\n  --name $STORAGE \\\n  --resource-group $RG_BACKEND \\\n  --query \"allowSharedKeyAccess\" \\\n  --output tsv)\n\nif [ \"$KEY_ACCESS\" = \"false\" ]; then\n  echo \"OK:   Shared key access er deaktivert\"\nelse\n  echo \"FUNN: Shared key access er aktivert paa $STORAGE\"\n  echo \"      Kontonokler gir full tilgang uten rollestyring\"\n  echo \"\"\n  echo \"Utbedring: Storage Account - Configuration\"\n  echo \"           Sett Allow storage account key access til Disabled\"\nfi"}, {"id": 7, "cat": "Ressurskonfigurasjon", "title": "Offentlig tilgang til interne dokumenter", "explain": "Undersok Blob Storage i backend resource group. Sjekk tilgangsinnstillingene paa containeren interne-dokumenter. Kan hvem som helst med URL-en laste ned filene? Prover aa aapne en blob-URL direkte i nettleseren uten aa autentisere deg.\n\nNavigasjon: Azure Portal - Storage Account - Containers - interne-dokumenter", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSTORAGE=\"${PREFIX}stginfraisec\"\n\necho \"--- Sjekker public access paa blob container ---\"\nACCOUNT_PUBLIC=$(az storage account show \\\n  --name $STORAGE \\\n  --resource-group $RG_BACKEND \\\n  --query \"allowBlobPublicAccess\" \\\n  --output tsv)\n\nif [ \"$ACCOUNT_PUBLIC\" = \"false\" ]; then\n  echo \"OK:   Public blob access er deaktivert\"\nelse\n  echo \"FUNN: Public blob access er aktivert paa $STORAGE\"\n  echo \"      Interne dokumenter er tilgjengelige via URL\"\n  echo \"\"\n  echo \"Utbedring: Storage Account - Configuration\"\n  echo \"           Sett Allow Blob anonymous access til Disabled\"\nfi"}, {"id": 8, "cat": "Ressurskonfigurasjon", "title": "Nettverkstilgang til databaseserver", "explain": "Undersok Azure SQL Server i backend resource group. En databaseserver bor ha strengt begrensede nettverksregler som kun tillater tilgang fra kjente og nodvendige kilder. Sjekk brannmurreglene.\n\nNavigasjon: Azure Portal - SQL Server - Networking - Firewall rules", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSQL=\"${PREFIX}-sql-infraitsec\"\n\necho \"--- Sjekker SQL Server brannmurregler ---\"\naz sql server firewall-rule list \\\n  --resource-group $RG_BACKEND \\\n  --server $SQL \\\n  --query \"[].{Navn:name, Fra:startIpAddress, Til:endIpAddress}\" \\\n  --output table\n\nOPEN_RULE=$(az sql server firewall-rule list \\\n  --resource-group $RG_BACKEND \\\n  --server $SQL \\\n  --query \"[?endIpAddress=='255.255.255.255'].name\" \\\n  --output tsv)\n\necho \"\"\nif [ -n \"$OPEN_RULE\" ]; then\n  echo \"FUNN: Brannmurregel tillater alle IP-adresser (0.0.0.0-255.255.255.255)\"\n  echo \"\"\n  echo \"Utbedring: SQL Server - Networking - Firewall rules\"\n  echo \"           Slett regelen som tillater 0.0.0.0-255.255.255.255\"\nelse\n  echo \"OK:   Ingen brannmurregel tillater alle IP-adresser\"\nfi"}];
+var HINTS = [{"id":1,"cat":"Nettverkssikkerhet","title":"Tilgangskontroll på administrasjonsnettet","explain":"Undersøk NSG-reglene på management-subnettet i hub resource group. Se på inngående regler og hvilke kilder som har tilgang. Er tilgangen bredere enn den burde være? Navigasjon: Azure Portal → NSG → Inbound security rules","script":"PREFIX=\"<ditt-prefiks>\"\nRG_HUB=\"${PREFIX}-rg-infraitsec-hub\"\nNSG=\"${PREFIX}-nsg-management\"\n\nRISKY=$(az network nsg rule list --resource-group $RG_HUB --nsg-name $NSG --query \"[?sourceAddressPrefix=='*' || sourceAddressPrefix=='0.0.0.0/0'].name\" --output tsv)\n\nif [ -z \"$RISKY\" ]; then\n  echo \"OK:   Ingen NSG-regler er åpne mot 0.0.0.0/0\"\nelse\n  echo \"FUNN: Regel åpen mot internett: $RISKY\"\n  echo \"Utbedring: Endre SourceAddressPrefix til spesifikt IP-adresserom\"\nfi"},{"id":2,"cat":"Nettverkssikkerhet","title":"Eksponering av administrasjonsserver","explain":"Undersøk jumpbox-VM-en i hub resource group. En administrasjonsserver bør ikke være direkte tilgjengelig fra internett. Tilgang bør gå via VPN eller Bastion. Navigasjon: Azure Portal → VM → Networking → NIC → IP configurations","script":"PREFIX=\"<ditt-prefiks>\"\nRG_HUB=\"${PREFIX}-rg-infraitsec-hub\"\nVM=\"${PREFIX}-vm-jumpbox\"\n\nPUBLIC_IP=$(az vm list-ip-addresses --resource-group $RG_HUB --name $VM --query \"[0].virtualMachine.network.publicIpAddresses[0].ipAddress\" --output tsv)\n\nif [ -z \"$PUBLIC_IP\" ] || [ \"$PUBLIC_IP\" = \"null\" ]; then\n  echo \"OK:   Jumpbox har ingen direkte public IP-adresse\"\nelse\n  echo \"FUNN: Jumpbox er eksponert med public IP: $PUBLIC_IP\"\n  echo \"Utbedring: Fjern public IP fra NIC-en på jumpbox-VM-en\"\nfi"},{"id":3,"cat":"Nettverkssikkerhet","title":"Trafikkontroll mellom nettverkssegmenter","explain":"Undersøk om trafikk mellom frontend-spoke og backend-spoke er kontrollert. I hub-spoke bør trafikk tvinges gjennom hub-en via en User Defined Route (UDR). Navigasjon: Azure Portal → Subnet → Route table","script":"PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nVNET=\"${PREFIX}-vnet-backend\"\nSUBNET=\"${PREFIX}-snet-data\"\n\nROUTE_TABLE=$(az network vnet subnet show --resource-group $RG_BACKEND --vnet-name $VNET --name $SUBNET --query \"routeTable.id\" --output tsv)\n\nif [ -z \"$ROUTE_TABLE\" ] || [ \"$ROUTE_TABLE\" = \"null\" ]; then\n  echo \"FUNN: Ingen UDR er tilknyttet backend-subnettet\"\n  echo \"Utbedring: Opprett Route Table med default-rute mot NVA i hub-en\"\nelse\n  echo \"OK:   UDR er tilknyttet backend-subnettet\"\nfi"},{"id":4,"cat":"Identitet og tilgang","title":"Autentisering på kundeportalen","explain":"Undersøk App Service i frontend resource group. En kundeportal bør kreve at brukere autentiserer seg før de får tilgang. Navigasjon: Azure Portal → App Service → Authentication","script":"PREFIX=\"<ditt-prefiks>\"\nRG_FRONTEND=\"${PREFIX}-rg-infraitsec-frontend\"\nAPP=\"${PREFIX}-app-infraitsec\"\n\nAUTH=$(az webapp auth show --resource-group $RG_FRONTEND --name $APP --query \"enabled\" --output tsv)\n\nif [ \"$AUTH\" = \"true\" ]; then\n  echo \"OK:   Entra ID-autentisering er aktivert på App Service\"\nelse\n  echo \"FUNN: Ingen autentisering er konfigurert på App Service\"\n  echo \"Utbedring: App Service - Authentication - Add identity provider - Microsoft\"\nfi"},{"id":5,"cat":"Identitet og tilgang","title":"Tilgangsstyring for hemmelighetslageret","explain":"Undersøk Key Vault i backend resource group. Key Vault inneholder sensitive hemmeligheter som databasepassord og API-nøkler. Sjekk hvem som har tilgang til å lese dem. Navigasjon: Azure Portal → Key Vault → Access policies","script":"PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nKV=\"${PREFIX}-kv-infraitsec\"\n\naz keyvault show --name $KV --resource-group $RG_BACKEND --query \"properties.accessPolicies[].{Principal:objectId, Secrets:permissions.secrets}\" --output table\n\nBROAD=$(az keyvault show --name $KV --resource-group $RG_BACKEND --query \"length(properties.accessPolicies[?contains(permissions.secrets, 'get') && contains(permissions.secrets, 'list')])\" --output tsv)\n\nif [ \"$BROAD\" -gt \"1\" ]; then\n  echo \"FUNN: $BROAD principals har Get+List tilgang til hemmeligheter\"\nelse\n  echo \"OK:   Kun nødvendige principals har tilgang til hemmeligheter\"\nfi"},{"id":6,"cat":"Identitet og tilgang","title":"Autentiseringsmetode for lagringstjenesten","explain":"Undersøk Storage Account i backend resource group. Azure Storage støtter kontonøkler (full tilgang) og Managed Identity (rollestyring). Sjekk hvilken metode som er aktivert. Navigasjon: Azure Portal → Storage Account → Configuration","script":"PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSTORAGE=\"${PREFIX}stginfraisec\"\n\nKEY_ACCESS=$(az storage account show --name $STORAGE --resource-group $RG_BACKEND --query \"allowSharedKeyAccess\" --output tsv)\n\nif [ \"$KEY_ACCESS\" = \"false\" ]; then\n  echo \"OK:   Shared key access er deaktivert\"\nelse\n  echo \"FUNN: Shared key access er aktivert på $STORAGE\"\n  echo \"Utbedring: Storage Account - Configuration - Allow storage account key access: Disabled\"\nfi"},{"id":7,"cat":"Ressurskonfigurasjon","title":"Offentlig tilgang til interne dokumenter","explain":"Undersøk Blob Storage i backend resource group. Sjekk tilgangsinnstillingene på containeren interne-dokumenter. Kan hvem som helst laste ned filene via URL uten å autentisere seg? Navigasjon: Azure Portal → Storage Account → Containers → interne-dokumenter","script":"PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSTORAGE=\"${PREFIX}stginfraisec\"\n\nACCOUNT_PUBLIC=$(az storage account show --name $STORAGE --resource-group $RG_BACKEND --query \"allowBlobPublicAccess\" --output tsv)\n\nif [ \"$ACCOUNT_PUBLIC\" = \"false\" ]; then\n  echo \"OK:   Public blob access er deaktivert\"\nelse\n  echo \"FUNN: Public blob access er aktivert på $STORAGE\"\n  echo \"Utbedring: Storage Account - Configuration - Allow Blob anonymous access: Disabled\"\nfi"},{"id":8,"cat":"Ressurskonfigurasjon","title":"Nettverkstilgang til databaseserver","explain":"Undersøk Azure SQL Server i backend resource group. En databaseserver bør ha begrensede nettverksregler som kun tillater tilgang fra kjente og nødvendige kilder. Navigasjon: Azure Portal → SQL Server → Networking → Firewall rules","script":"PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSQL=\"${PREFIX}-sql-infraitsec\"\n\naz sql server firewall-rule list --resource-group $RG_BACKEND --server $SQL --query \"[].{Navn:name, Fra:startIpAddress, Til:endIpAddress}\" --output table\n\nOPEN_RULE=$(az sql server firewall-rule list --resource-group $RG_BACKEND --server $SQL --query \"[?endIpAddress=='255.255.255.255'].name\" --output tsv)\n\nif [ -n \"$OPEN_RULE\" ]; then\n  echo \"FUNN: Brannmurregel tillater alle IP-adresser (0.0.0.0-255.255.255.255)\"\n  echo \"Utbedring: SQL Server - Networking - Slett regelen AllowAll\"\nelse\n  echo \"OK:   Ingen brannmurregel tillater alle IP-adresser\"\nfi"}]; then
+  echo \"OK:   Ingen NSG-regler er åpne mot 0.0.0.0/0\"
+else
+  echo \"FUNN: Regel åpen mot internett: $RISKY\"
+  echo \"Utbedring: Endre SourceAddressPrefix til spesifikt IP-adresserom\"
+fi"},{"id":2,"cat":"Nettverkssikkerhet","title":"Eksponering av administrasjonsserver","explain":"Undersøk jumpbox-VM-en i hub resource group. En administrasjonsserver bør ikke være direkte tilgjengelig fra internett. Tilgang bør gå via VPN eller Bastion.
+
+Navigasjon: Azure Portal → VM → Networking → NIC → IP configurations","script":"PREFIX=\"<ditt-prefiks>\"
+RG_HUB=\"${PREFIX}-rg-infraitsec-hub\"
+VM=\"${PREFIX}-vm-jumpbox\"
+
+PUBLIC_IP=$(az vm list-ip-addresses \
+  --resource-group $RG_HUB \
+  --name $VM \
+  --query \"[0].virtualMachine.network.publicIpAddresses[0].ipAddress\" \
+  --output tsv)
+
+if [ -z \"$PUBLIC_IP\" ] || [ \"$PUBLIC_IP\" = \"null\" ]; then
+  echo \"OK:   Jumpbox har ingen direkte public IP-adresse\"
+else
+  echo \"FUNN: Jumpbox er eksponert med public IP: $PUBLIC_IP\"
+  echo \"Utbedring: Fjern public IP fra NIC-en på jumpbox-VM-en\"
+fi"},{"id":3,"cat":"Nettverkssikkerhet","title":"Trafikkontroll mellom nettverkssegmenter","explain":"Undersøk om det finnes mekanismer som kontrollerer trafikk mellom frontend-spoke og backend-spoke. I hub-spoke bør trafikk tvinges gjennom hub-en via en User Defined Route (UDR).
+
+Navigasjon: Azure Portal → Subnet → Route table","script":"PREFIX=\"<ditt-prefiks>\"
+RG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"
+VNET=\"${PREFIX}-vnet-backend\"
+SUBNET=\"${PREFIX}-snet-data\"
+
+ROUTE_TABLE=$(az network vnet subnet show \
+  --resource-group $RG_BACKEND \
+  --vnet-name $VNET \
+  --name $SUBNET \
+  --query \"routeTable.id\" \
+  --output tsv)
+
+if [ -z \"$ROUTE_TABLE\" ] || [ \"$ROUTE_TABLE\" = \"null\" ]; then
+  echo \"FUNN: Ingen UDR er tilknyttet backend-subnettet\"
+  echo \"Utbedring: Opprett Route Table med default-rute mot NVA i hub-en\"
+else
+  echo \"OK:   UDR er tilknyttet backend-subnettet\"
+fi"},{"id":4,"cat":"Identitet og tilgang","title":"Autentisering på kundeportalen","explain":"Undersøk App Service i frontend resource group. En kundeportal bør kreve at brukere autentiserer seg før de får tilgang til innhold.
+
+Navigasjon: Azure Portal → App Service → Authentication","script":"PREFIX=\"<ditt-prefiks>\"
+RG_FRONTEND=\"${PREFIX}-rg-infraitsec-frontend\"
+APP=\"${PREFIX}-app-infraitsec\"
+
+AUTH=$(az webapp auth show \
+  --resource-group $RG_FRONTEND \
+  --name $APP \
+  --query \"enabled\" \
+  --output tsv)
+
+if [ \"$AUTH\" = \"true\" ]; then
+  echo \"OK:   Entra ID-autentisering er aktivert på App Service\"
+else
+  echo \"FUNN: Ingen autentisering er konfigurert på App Service\"
+  echo \"Utbedring: App Service → Authentication → Add identity provider\"
+fi"},{"id":5,"cat":"Identitet og tilgang","title":"Tilgangsstyring for hemmelighetslageret","explain":"Undersøk Key Vault i backend resource group. Key Vault inneholder sensitive hemmeligheter. Sjekk hvem som har tilgang til å lese dem.
+
+Navigasjon: Azure Portal → Key Vault → Access policies","script":"PREFIX=\"<ditt-prefiks>\"
+RG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"
+KV=\"${PREFIX}-kv-infraitsec\"
+
+az keyvault show \
+  --name $KV \
+  --resource-group $RG_BACKEND \
+  --query \"properties.accessPolicies[].{Principal:objectId, Secrets:permissions.secrets}\" \
+  --output table
+
+BROAD=$(az keyvault show \
+  --name $KV \
+  --resource-group $RG_BACKEND \
+  --query \"length(properties.accessPolicies[?contains(permissions.secrets, 'get') && contains(permissions.secrets, 'list')])\" \
+  --output tsv)
+
+if [ \"$BROAD\" -gt \"1\" ]; then
+  echo \"FUNN: $BROAD principals har Get+List tilgang til hemmeligheter\"
+else
+  echo \"OK:   Kun nødvendige principals har tilgang til hemmeligheter\"
+fi"},{"id":6,"cat":"Identitet og tilgang","title":"Autentiseringsmetode for lagringstjenesten","explain":"Undersøk Storage Account i backend resource group. Azure Storage støtter kontonøkler (full tilgang) og Managed Identity (rollestyring). Sjekk hvilken metode som er aktivert.
+
+Navigasjon: Azure Portal → Storage Account → Configuration","script":"PREFIX=\"<ditt-prefiks>\"
+RG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"
+STORAGE=\"${PREFIX}stginfraisec\"
+
+KEY_ACCESS=$(az storage account show \
+  --name $STORAGE \
+  --resource-group $RG_BACKEND \
+  --query \"allowSharedKeyAccess\" \
+  --output tsv)
+
+if [ \"$KEY_ACCESS\" = \"false\" ]; then
+  echo \"OK:   Shared key access er deaktivert\"
+else
+  echo \"FUNN: Shared key access er aktivert på $STORAGE\"
+  echo \"Utbedring: Storage Account → Configuration → Allow storage account key access: Disabled\"
+fi"},{"id":7,"cat":"Ressurskonfigurasjon","title":"Offentlig tilgang til interne dokumenter","explain":"Undersøk Blob Storage i backend resource group. Sjekk tilgangsinnstillingene på containeren interne-dokumenter. Kan hvem som helst laste ned filene via URL?
+
+Navigasjon: Azure Portal → Storage Account → Containers → interne-dokumenter","script":"PREFIX=\"<ditt-prefiks>\"
+RG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"
+STORAGE=\"${PREFIX}stginfraisec\"
+
+ACCOUNT_PUBLIC=$(az storage account show \
+  --name $STORAGE \
+  --resource-group $RG_BACKEND \
+  --query \"allowBlobPublicAccess\" \
+  --output tsv)
+
+if [ \"$ACCOUNT_PUBLIC\" = \"false\" ]; then
+  echo \"OK:   Public blob access er deaktivert\"
+else
+  echo \"FUNN: Public blob access er aktivert på $STORAGE\"
+  echo \"Utbedring: Storage Account → Configuration → Allow Blob anonymous access: Disabled\"
+fi"},{"id":8,"cat":"Ressurskonfigurasjon","title":"Nettverkstilgang til databaseserver","explain":"Undersøk Azure SQL Server i backend resource group. En databaseserver bør ha begrensede nettverksregler som kun tillater tilgang fra kjente kilder.
+
+Navigasjon: Azure Portal → SQL Server → Networking → Firewall rules","script":"PREFIX=\"<ditt-prefiks>\"
+RG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"
+SQL=\"${PREFIX}-sql-infraitsec\"
+
+az sql server firewall-rule list \
+  --resource-group $RG_BACKEND \
+  --server $SQL \
+  --query \"[].{Navn:name, Fra:startIpAddress, Til:endIpAddress}\" \
+  --output table
+
+OPEN_RULE=$(az sql server firewall-rule list \
+  --resource-group $RG_BACKEND \
+  --server $SQL \
+  --query \"[?endIpAddress=='255.255.255.255'].name\" \
+  --output tsv)
+
+if [ -n \"$OPEN_RULE\" ]; then
+  echo \"FUNN: Brannmurregel tillater alle IP-adresser\"
+  echo \"Utbedring: SQL Server → Networking → Slett regelen AllowAll\"
+else
+  echo \"OK:   Ingen brannmurregel tillater alle IP-adresser\"
+fi"}]; then
+  echo \"OK:   Ingen NSG-regler er åpne mot 0.0.0.0/0\"
+else
+  echo \"FUNN: Følgende regler er åpne mot internett:\"
+  echo \"$RISKY\"
+  echo \"\"
+  echo \"Utbedring: Endre SourceAddressPrefix til spesifikt IP-adresserom\"
+fi"}, {"id": 2, "cat": "Nettverkssikkerhet", "title": "Eksponering av administrasjonsserver", "explain": "Undersøk jumpbox-VM-en i hub resource group. En administrasjonsserver bør ikke være direkte tilgjengelig fra internett. Tilgang bør gå via VPN, Bastion eller lignende sikker kanal.
+
+Navigasjon: Azure Portal → VM → Networking → NIC → IP configurations", "script": "PREFIX=\"<ditt-prefiks>\"
+RG_HUB=\"${PREFIX}-rg-infraitsec-hub\"
+VM=\"${PREFIX}-vm-jumpbox\"
+
+echo \"--- Sjekker public IP på jumpbox ---\"
+PUBLIC_IP=$(az vm list-ip-addresses \
+  --resource-group $RG_HUB \
+  --name $VM \
+  --query \"[0].virtualMachine.network.publicIpAddresses[0].ipAddress\" \
+  --output tsv)
+
+if [ -z \"$PUBLIC_IP\" ] || [ \"$PUBLIC_IP\" = \"null\" ]; then
+  echo \"OK:   Jumpbox har ingen direkte public IP-adresse\"
+else
+  echo \"FUNN: Jumpbox er eksponert mot internett: $PUBLIC_IP\"
+  echo \"\"
+  echo \"Utbedring: Fjern public IP fra NIC-en på jumpbox-VM-en\"
+fi"}, {"id": 3, "cat": "Nettverkssikkerhet", "title": "Trafikkontroll mellom nettverkssegmenter", "explain": "Undersøk om det finnes mekanismer som kontrollerer trafikk mellom frontend-spoke og backend-spoke. I hub-spoke bør trafikk mellom spoke-er tvinges gjennom hub-en via en User Defined Route (UDR).
+
+Navigasjon: Azure Portal → Subnet → Route table", "script": "PREFIX=\"<ditt-prefiks>\"
+RG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"
+VNET=\"${PREFIX}-vnet-backend\"
+SUBNET=\"${PREFIX}-snet-data\"
+
+echo \"--- Sjekker UDR på backend data-subnet ---\"
+ROUTE_TABLE=$(az network vnet subnet show \
+  --resource-group $RG_BACKEND \
+  --vnet-name $VNET \
+  --name $SUBNET \
+  --query \"routeTable.id\" \
+  --output tsv)
+
+if [ -z \"$ROUTE_TABLE\" ] || [ \"$ROUTE_TABLE\" = \"null\" ]; then
+  echo \"FUNN: Ingen UDR er tilknyttet backend-subnettet\"
+  echo \"      Trafikk fra frontend kan nå backend direkte\"
+else
+  echo \"OK:   UDR er tilknyttet backend-subnettet\"
+fi"}, {"id": 4, "cat": "Identitet og tilgang", "title": "Autentisering på kundeportalen", "explain": "Undersøk App Service i frontend resource group. En kundeportal bør kreve at brukere autentiserer seg før de får tilgang til innhold.
+
+Navigasjon: Azure Portal → App Service → Authentication", "script": "PREFIX=\"<ditt-prefiks>\"
+RG_FRONTEND=\"${PREFIX}-rg-infraitsec-frontend\"
+APP=\"${PREFIX}-app-infraitsec\"
+
+echo \"--- Sjekker autentisering på App Service ---\"
+AUTH=$(az webapp auth show \
+  --resource-group $RG_FRONTEND \
+  --name $APP \
+  --query \"enabled\" \
+  --output tsv)
+
+if [ \"$AUTH\" = \"true\" ]; then
+  echo \"OK:   Entra ID-autentisering er aktivert på App Service\"
+else
+  echo \"FUNN: Ingen autentisering er konfigurert på App Service\"
+  echo \"Utbedring: App Service → Authentication → Add identity provider\"
+fi"}, {"id": 5, "cat": "Identitet og tilgang", "title": "Tilgangsstyring for hemmelighetslageret", "explain": "Undersøk Key Vault i backend resource group. Key Vault inneholder sensitive hemmeligheter. Sjekk hvem som har tilgang til å lese hemmelighetene.
+
+Navigasjon: Azure Portal → Key Vault → Access policies", "script": "PREFIX=\"<ditt-prefiks>\"
+RG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"
+KV=\"${PREFIX}-kv-infraitsec\"
+
+echo \"--- Sjekker Key Vault access policies ---\"
+az keyvault show \
+  --name $KV \
+  --resource-group $RG_BACKEND \
+  --query \"properties.accessPolicies[].{Principal:objectId, Secrets:permissions.secrets}\" \
+  --output table
+
+BROAD=$(az keyvault show \
+  --name $KV \
+  --resource-group $RG_BACKEND \
+  --query \"length(properties.accessPolicies[?contains(permissions.secrets, 'get') && contains(permissions.secrets, 'list')])\" \
+  --output tsv)
+
+echo \"\"
+if [ \"$BROAD\" -gt \"1\" ]; then
+  echo \"FUNN: $BROAD principals har Get+List tilgang til hemmeligheter\"
+else
+  echo \"OK:   Kun nødvendige principals har tilgang til hemmeligheter\"
+fi"}, {"id": 6, "cat": "Identitet og tilgang", "title": "Autentiseringsmetode for lagringstjenesten", "explain": "Undersøk Storage Account i backend resource group. Azure Storage støtter kontonøkler (full tilgang) og Managed Identity (rollestyring). Sjekk hvilken metode som er aktivert.
+
+Navigasjon: Azure Portal → Storage Account → Configuration", "script": "PREFIX=\"<ditt-prefiks>\"
+RG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"
+STORAGE=\"${PREFIX}stginfraisec\"
+
+echo \"--- Sjekker autentiseringsmetode på Storage Account ---\"
+KEY_ACCESS=$(az storage account show \
+  --name $STORAGE \
+  --resource-group $RG_BACKEND \
+  --query \"allowSharedKeyAccess\" \
+  --output tsv)
+
+if [ \"$KEY_ACCESS\" = \"false\" ]; then
+  echo \"OK:   Shared key access er deaktivert\"
+else
+  echo \"FUNN: Shared key access er aktivert på $STORAGE\"
+  echo \"Utbedring: Storage Account → Configuration → Allow storage account key access: Disabled\"
+fi"}, {"id": 7, "cat": "Ressurskonfigurasjon", "title": "Offentlig tilgang til interne dokumenter", "explain": "Undersøk Blob Storage i backend resource group. Sjekk tilgangsinnstillingene på containeren interne-dokumenter. Kan hvem som helst med URL-en laste ned filene?
+
+Navigasjon: Azure Portal → Storage Account → Containers → interne-dokumenter", "script": "PREFIX=\"<ditt-prefiks>\"
+RG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"
+STORAGE=\"${PREFIX}stginfraisec\"
+
+echo \"--- Sjekker public access på blob container ---\"
+ACCOUNT_PUBLIC=$(az storage account show \
+  --name $STORAGE \
+  --resource-group $RG_BACKEND \
+  --query \"allowBlobPublicAccess\" \
+  --output tsv)
+
+if [ \"$ACCOUNT_PUBLIC\" = \"false\" ]; then
+  echo \"OK:   Public blob access er deaktivert\"
+else
+  echo \"FUNN: Public blob access er aktivert på $STORAGE\"
+  echo \"Utbedring: Storage Account → Configuration → Allow Blob anonymous access: Disabled\"
+fi"}, {"id": 8, "cat": "Ressurskonfigurasjon", "title": "Nettverkstilgang til databaseserver", "explain": "Undersøk Azure SQL Server i backend resource group. En databaseserver bør ha begrensede nettverksregler som kun tillater tilgang fra kjente kilder.
+
+Navigasjon: Azure Portal → SQL Server → Networking → Firewall rules", "script": "PREFIX=\"<ditt-prefiks>\"
+RG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"
+SQL=\"${PREFIX}-sql-infraitsec\"
+
+echo \"--- Sjekker SQL Server brannmurregler ---\"
+az sql server firewall-rule list \
+  --resource-group $RG_BACKEND \
+  --server $SQL \
+  --query \"[].{Navn:name, Fra:startIpAddress, Til:endIpAddress}\" \
+  --output table
+
+OPEN_RULE=$(az sql server firewall-rule list \
+  --resource-group $RG_BACKEND \
+  --server $SQL \
+  --query \"[?endIpAddress=='255.255.255.255'].name\" \
+  --output tsv)
+
+echo \"\"
+if [ -n \"$OPEN_RULE\" ]; then
+  echo \"FUNN: Brannmurregel tillater alle IP-adresser (0.0.0.0-255.255.255.255)\"
+  echo \"Utbedring: SQL Server → Networking → Slett regelen AllowAll\"
+else
+  echo \"OK:   Ingen brannmurregel tillater alle IP-adresser\"
+fi"}]; then\n  echo \"OK:   Ingen NSG-regler er åpne mot 0.0.0.0/0\"\nelse\n  echo \"FUNN: Følgende regler er åpne mot internett:\"\n  echo \"$RISKY\"\n  echo \"\"\n  echo \"Utbedring: Endre SourceAddressPrefix til spesifikt\"\n  echo \"           IP-adresserom istedenfor * eller 0.0.0.0/0\"\nfi"}, {"id": 2, "cat": "Nettverkssikkerhet", "title": "Eksponering av administrasjonsserver", "explain": "Undersøk jumpbox-VM-en i hub resource group. En administrasjonsserver bør ikke være direkte tilgjengelig fra internett. Tilgang bør gå via VPN, Bastion eller lignende sikker kanal. Sjekk nettverkskonfigurasjonen på VM-en.\n\nNavigasjon: Azure Portal → VM → Networking → NIC → IP configurations", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_HUB=\"${PREFIX}-rg-infraitsec-hub\"\nVM=\"${PREFIX}-vm-jumpbox\"\n\necho \"--- Sjekker public IP på jumpbox ---\"\nPUBLIC_IP=$(az vm list-ip-addresses \\\n  --resource-group $RG_HUB \\\n  --name $VM \\\n  --query \"[0].virtualMachine.network.publicIpAddresses[0].ipAddress\" \\\n  --output tsv)\n\nif [ -z \"$PUBLIC_IP\" ] || [ \"$PUBLIC_IP\" = \"null\" ]; then\n  echo \"OK:   Jumpbox har ingen direkte public IP-adresse\"\nelse\n  echo \"FUNN: Jumpbox er eksponert mot internett: $PUBLIC_IP\"\n  echo \"\"\n  echo \"Utbedring: Fjern public IP fra NIC-en på jumpbox-VM-en\"\nfi"}, {"id": 3, "cat": "Nettverkssikkerhet", "title": "Trafikkontroll mellom nettverkssegmenter", "explain": "Undersøk om det finnes mekanismer som kontrollerer trafikk mellom frontend-spoke og backend-spoke. I en hub-spoke-topologi bør trafikk mellom spoke-er tvinges gjennom hub-en via en User Defined Route (UDR). Uten dette kan frontend-applikasjonen nå backend-ressurser direkte.\n\nNavigasjon: Azure Portal → Subnet → Route table", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nVNET=\"${PREFIX}-vnet-backend\"\nSUBNET=\"${PREFIX}-snet-data\"\n\necho \"--- Sjekker UDR på backend data-subnet ---\"\nROUTE_TABLE=$(az network vnet subnet show \\\n  --resource-group $RG_BACKEND \\\n  --vnet-name $VNET \\\n  --name $SUBNET \\\n  --query \"routeTable.id\" \\\n  --output tsv)\n\nif [ -z \"$ROUTE_TABLE\" ] || [ \"$ROUTE_TABLE\" = \"null\" ]; then\n  echo \"FUNN: Ingen UDR er tilknyttet backend-subnettet\"\n  echo \"      Trafikk fra frontend kan nå backend direkte\"\n  echo \"\"\n  echo \"Utbedring: Opprett Route Table med default-rute (0.0.0.0/0)\"\n  echo \"           som peker mot NVA eller Azure Firewall i hub-en\"\nelse\n  echo \"OK:   UDR er tilknyttet backend-subnettet\"\nfi"}, {"id": 4, "cat": "Identitet og tilgang", "title": "Autentisering på kundeportalen", "explain": "Undersøk App Service i frontend resource group. En kundeportal bør kreve at brukere autentiserer seg før de får tilgang til innhold. Sjekk om det er konfigurert noen autentiseringsmekanisme på App Service-en.\n\nNavigasjon: Azure Portal → App Service → Authentication", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_FRONTEND=\"${PREFIX}-rg-infraitsec-frontend\"\nAPP=\"${PREFIX}-app-infraitsec\"\n\necho \"--- Sjekker autentisering på App Service ---\"\nAUTH=$(az webapp auth show \\\n  --resource-group $RG_FRONTEND \\\n  --name $APP \\\n  --query \"enabled\" \\\n  --output tsv)\n\nif [ \"$AUTH\" = \"true\" ]; then\n  echo \"OK:   Entra ID-autentisering er aktivert på App Service\"\nelse\n  echo \"FUNN: Ingen autentisering er konfigurert på App Service\"\n  echo \"      Kundeportalen er tilgjengelig for alle uten innlogging\"\n  echo \"\"\n  echo \"Utbedring: App Service - Authentication - Add identity provider\"\n  echo \"           Velg Microsoft og konfigurer Entra ID-autentisering\"\nfi"}, {"id": 5, "cat": "Identitet og tilgang", "title": "Tilgangsstyring for hemmelighetslageret", "explain": "Undersøk Key Vault i backend resource group. Key Vault inneholder sensitive hemmeligheter som databasepassord og API-nøkler. Sjekk hvem som har tilgang til å lese hemmelighetene.\n\nNavigasjon: Azure Portal → Key Vault → Access policies", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nKV=\"${PREFIX}-kv-infraitsec\"\n\necho \"--- Sjekker Key Vault access policies ---\"\naz keyvault show \\\n  --name $KV \\\n  --resource-group $RG_BACKEND \\\n  --query \"properties.accessPolicies[].{Principal:objectId, Secrets:permissions.secrets}\" \\\n  --output table\n\nBROAD=$(az keyvault show \\\n  --name $KV \\\n  --resource-group $RG_BACKEND \\\n  --query \"length(properties.accessPolicies[?contains(permissions.secrets, 'get') && contains(permissions.secrets, 'list')])\" \\\n  --output tsv)\n\necho \"\"\nif [ \"$BROAD\" -gt \"1\" ]; then\n  echo \"FUNN: $BROAD principals har Get+List tilgang til hemmeligheter\"\n  echo \"\"\n  echo \"Utbedring: Fjern unødvendige access policies\"\nelse\n  echo \"OK:   Kun nødvendige principals har tilgang til hemmeligheter\"\nfi"}, {"id": 6, "cat": "Identitet og tilgang", "title": "Autentiseringsmetode for lagringstjenesten", "explain": "Undersøk Storage Account i backend resource group. Azure Storage støtter to autentiseringsmetoder: kontonøkler (full tilgang) og Managed Identity (rollestyring). Sjekk hvilken metode som er aktivert.\n\nNavigasjon: Azure Portal → Storage Account → Configuration", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSTORAGE=\"${PREFIX}stginfraisec\"\n\necho \"--- Sjekker autentiseringsmetode på Storage Account ---\"\nKEY_ACCESS=$(az storage account show \\\n  --name $STORAGE \\\n  --resource-group $RG_BACKEND \\\n  --query \"allowSharedKeyAccess\" \\\n  --output tsv)\n\nif [ \"$KEY_ACCESS\" = \"false\" ]; then\n  echo \"OK:   Shared key access er deaktivert\"\nelse\n  echo \"FUNN: Shared key access er aktivert på $STORAGE\"\n  echo \"      Kontonøkler gir full tilgang uten rollestyring\"\n  echo \"\"\n  echo \"Utbedring: Storage Account - Configuration\"\n  echo \"           Sett Allow storage account key access til Disabled\"\nfi"}, {"id": 7, "cat": "Ressurskonfigurasjon", "title": "Offentlig tilgang til interne dokumenter", "explain": "Undersøk Blob Storage i backend resource group. Sjekk tilgangsinnstillingene på containeren interne-dokumenter. Kan hvem som helst med URL-en laste ned filene? Prøv å åpne en blob-URL direkte i nettleseren uten å autentisere deg.\n\nNavigasjon: Azure Portal → Storage Account → Containers → interne-dokumenter", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSTORAGE=\"${PREFIX}stginfraisec\"\n\necho \"--- Sjekker public access på blob container ---\"\nACCOUNT_PUBLIC=$(az storage account show \\\n  --name $STORAGE \\\n  --resource-group $RG_BACKEND \\\n  --query \"allowBlobPublicAccess\" \\\n  --output tsv)\n\nif [ \"$ACCOUNT_PUBLIC\" = \"false\" ]; then\n  echo \"OK:   Public blob access er deaktivert\"\nelse\n  echo \"FUNN: Public blob access er aktivert på $STORAGE\"\n  echo \"      Interne dokumenter er tilgjengelige via URL\"\n  echo \"\"\n  echo \"Utbedring: Storage Account - Configuration\"\n  echo \"           Sett Allow Blob anonymous access til Disabled\"\nfi"}, {"id": 8, "cat": "Ressurskonfigurasjon", "title": "Nettverkstilgang til databaseserver", "explain": "Undersøk Azure SQL Server i backend resource group. En databaseserver bør ha strengt begrensede nettverksregler som kun tillater tilgang fra kjente og nødvendige kilder. Sjekk brannmurreglene.\n\nNavigasjon: Azure Portal → SQL Server → Networking → Firewall rules", "script": "PREFIX=\"<ditt-prefiks>\"\nRG_BACKEND=\"${PREFIX}-rg-infraitsec-backend\"\nSQL=\"${PREFIX}-sql-infraitsec\"\n\necho \"--- Sjekker SQL Server brannmurregler ---\"\naz sql server firewall-rule list \\\n  --resource-group $RG_BACKEND \\\n  --server $SQL \\\n  --query \"[].{Navn:name, Fra:startIpAddress, Til:endIpAddress}\" \\\n  --output table\n\nOPEN_RULE=$(az sql server firewall-rule list \\\n  --resource-group $RG_BACKEND \\\n  --server $SQL \\\n  --query \"[?endIpAddress=='255.255.255.255'].name\" \\\n  --output tsv)\n\necho \"\"\nif [ -n \"$OPEN_RULE\" ]; then\n  echo \"FUNN: Brannmurregel tillater alle IP-adresser (0.0.0.0-255.255.255.255)\"\n  echo \"\"\n  echo \"Utbedring: SQL Server - Networking - Firewall rules\"\n  echo \"           Slett regelen som tillater 0.0.0.0-255.255.255.255\"\nelse\n  echo \"OK:   Ingen brannmurregel tillater alle IP-adresser\"\nfi"}];
 var CATS = [];
 HINTS.forEach(function(h) { if (CATS.indexOf(h.cat) === -1) CATS.push(h.cat); });
 var currentUser = null;
@@ -194,7 +480,7 @@ function updateProg() {
   var u = safeGet('iits_usage') || {};
   var c = Object.keys(u[currentUser] || {}).length;
   document.getElementById('prog').style.width = Math.round(c/HINTS.length*100) + '%';
-  document.getElementById('prog-lbl').textContent = c + ' av ' + HINTS.length + ' hint aapnet';
+  document.getElementById('prog-lbl').textContent = c + ' av ' + HINTS.length + ' hint åpnet';
 }
 
 function doLoginStudent() {
@@ -207,7 +493,7 @@ function doLoginStudent() {
   document.getElementById('err-login').textContent = '';
   currentUser = prefix;
   document.getElementById('hdr-user').textContent = prefix;
-  document.getElementById('s-sub').textContent = 'Prefiks: ' + prefix + ' — 8 svakheter aa finne';
+  document.getElementById('s-sub').textContent = 'Prefiks: ' + prefix + ' — 8 svakheter å finne';
   document.getElementById('s-foot').textContent = useSheets ? 'Hint-bruk lagres sentralt.' : 'Hint-bruk lagres lokalt i denne nettleseren.';
   showV('v-student');
   renderStudent();
@@ -217,7 +503,7 @@ function doLoginTeacher() {
   var pw = document.getElementById('f-pw').value || '';
   if (pw !== TPW) { document.getElementById('err-teacher').textContent = 'Feil passord.'; return; }
   document.getElementById('err-teacher').textContent = '';
-  document.getElementById('hdr-user').textContent = 'faglaerer';
+  document.getElementById('hdr-user').textContent = 'faglærer';
   document.getElementById('t-foot').textContent = useSheets ? 'Data hentes fra Google Sheets.' : 'Data lagres per nettleser.';
   showV('v-teacher');
   renderTeacher();
@@ -271,7 +557,7 @@ function renderStudent() {
         hdr.setAttribute('tabindex','0');
         hdr.innerHTML = '<span class="hnum">'+hint.id+'</span>' +
           '<span class="htit'+(eu?' used':'')+'">'+hint.title+'</span>' +
-          '<span class="badge '+(eu?'bdone':'bnew')+'">'+(eu?'Aapnet':'Nytt')+'</span>';
+          '<span class="badge '+(eu?'bdone':'bnew')+'">'+(eu?'Åpnet':'Nytt')+'</span>';
         var body = document.createElement('div');
         body.className = 'hbody';
         var expEl = document.createElement('div');
@@ -281,14 +567,14 @@ function renderStudent() {
         sep.className = 'sep';
         var slbl = document.createElement('p');
         slbl.className = 'slbl';
-        slbl.textContent = 'Verifiseringsscript — kjores i Azure Cloud Shell etter utbedring:';
+        slbl.textContent = 'Verifiseringsscript — kjøres i Azure Cloud Shell etter utbedring:';
         var sw = document.createElement('div');
         if (su) {
           buildScript(sw, hint);
         } else {
           var cbox = document.createElement('div');
           cbox.className = 'cbox';
-          cbox.innerHTML = '<p>Scriptet sjekker om svakheten er utbedret korrekt og skriver ut OK eller FUNN. Aapner du det registreres dette som brukt hint.</p>' +
+          cbox.innerHTML = '<p>Scriptet sjekker om svakheten er utbedret korrekt og skriver ut OK eller FUNN. Åpner du det registreres dette som brukt hint.</p>' +
             '<div class="brow"><button class="bwarn">Vis verifiseringsscript</button><button>Avbryt</button></div>';
           cbox.querySelectorAll('button')[0].addEventListener('click', function() {
             saveUsed(currentUser, hint.id, 'script', function() {
@@ -314,7 +600,7 @@ function renderStudent() {
             eu = true;
             saveUsed(currentUser, hint.id, 'explain', function() {
               hdr.querySelector('.badge').className = 'badge bdone';
-              hdr.querySelector('.badge').textContent = 'Aapnet';
+              hdr.querySelector('.badge').textContent = 'Åpnet';
               hdr.querySelector('.htit').classList.add('used');
               updateProg();
             });
@@ -375,17 +661,17 @@ function renderTeacher() {
       var avg = users.length ? (total/users.length).toFixed(1) : '0';
       document.getElementById('t-stats').innerHTML =
         '<div class="stat"><div class="slbl2">Studenter</div><div class="sval">'+users.length+'</div></div>' +
-        '<div class="stat"><div class="slbl2">Hint aapnet</div><div class="sval">'+total+'</div></div>' +
+        '<div class="stat"><div class="slbl2">Hint åpnet</div><div class="sval">'+total+'</div></div>' +
         '<div class="stat"><div class="slbl2">Snitt</div><div class="sval">'+avg+'</div></div>';
       var mx = document.getElementById('t-mx');
       mx.innerHTML = '';
-      if (!users.length) { mx.innerHTML = '<p class="empty">Ingen hint brukt ennaa.</p>'; }
+      if (!users.length) { mx.innerHTML = '<p class="empty">Ingen hint brukt ennå.</p>'; }
       else {
         var tbl = document.createElement('div');
         tbl.className = 'tbl';
         var hdr = document.createElement('div');
         hdr.className = 'trow th';
-        hdr.innerHTML = '<span>Prefiks</span><span>Aapnet</span>' +
+        hdr.innerHTML = '<span>Prefiks</span><span>Åpnet</span>' +
           HINTS.map(function(h){ return '<span style="text-align:center" title="'+h.title+'">'+h.id+'</span>'; }).join('');
         tbl.appendChild(hdr);
         users.forEach(function(u) {
@@ -401,7 +687,7 @@ function renderTeacher() {
       var lg = document.getElementById('t-lg');
       lg.innerHTML = '';
       var entries = Array.isArray(log) ? log : [];
-      if (!entries.length) { lg.innerHTML = '<p class="empty">Ingen aktivitet ennaa.</p>'; }
+      if (!entries.length) { lg.innerHTML = '<p class="empty">Ingen aktivitet ennå.</p>'; }
       else {
         var tbl2 = document.createElement('div');
         tbl2.className = 'tbl';
@@ -412,7 +698,7 @@ function renderTeacher() {
           var ts = new Date(e.ts);
           var t = ts.toLocaleDateString('no-NO')+' '+ts.toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'});
           var type = e.level==='script' ? 'script' : 'forklaring';
-          row.innerHTML = '<span><strong>'+e.user+'</strong> aapnet '+type+' — hint '+e.hintId+': '+(h?h.title:'')+'</span><span class="ltime">'+t+'</span>';
+          row.innerHTML = '<span><strong>'+e.user+'</strong> åpnet '+type+' — hint '+e.hintId+': '+(h?h.title:'')+'</span><span class="ltime">'+t+'</span>';
           tbl2.appendChild(row);
         });
         lg.appendChild(tbl2);
